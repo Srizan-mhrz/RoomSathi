@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RoomSathi</string>
+    <string name="title_activity_profile">ProfileActivity</string>
 </resources>
