@@ -125,7 +125,7 @@ fun MessageBody() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // ✅ Scrollable list of messages
+            // Scrollable list of messages
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -138,7 +138,7 @@ fun MessageBody() {
     }
 }
 
-// ✅ Reusable row for each message
+//  Reusable row for each message
 @Composable
 fun MessageRow(name: String, preview: String, imageRes: Int) {
     Row(

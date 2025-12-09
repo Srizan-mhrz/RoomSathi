@@ -297,7 +297,7 @@ fun DashboardBody() {
     }
 }
 
-// ✅ Reusable item for Room/Apartment/Location
+// Reusable item for Room/Apartment/Location
 @Composable
 fun RoomItem(label: String, iconRes: Int, onClick: () -> Unit) {
     Column(
@@ -317,7 +317,7 @@ fun RoomItem(label: String, iconRes: Int, onClick: () -> Unit) {
     }
 }
 
-// ✅ Reusable Bottom Navigation Item
+// Reusable Bottom Navigation Item
 @Composable
 fun BottomNavItem(label: String, iconRes: Int, onClick: () -> Unit) {
     Column(
