@@ -14,10 +14,9 @@ val DarkBrown = Color(0xFF5C4433)
 
 val Lightbeige = Color(0xFFE7DCCD)
 
-
-
 val White = Color(0xFFFFFFFF)
 val DarkBlue = Color(0xFF021024)
 val LightBlue = Color(0xFF212842)
 val Yellow = Color(0xFFFFEB3B)
 val Blue = Color(0xFF5B88B2)
+
