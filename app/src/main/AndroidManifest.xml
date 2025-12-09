@@ -14,6 +14,39 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RoomSathi">
         <activity
+            android:name=".InboxActivity"
+            android:exported="true"
+            android:label="@string/title_activity_inbox"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".DashboardActivity"
+            android:exported="true"
+            android:label="@string/title_activity_dashboard"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MessageActivity"
+            android:exported="true"
+            android:label="@string/title_activity_message"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".ProfileScreen"
             android:exported="true"
             android:label="@string/title_activity_profile_screen"
