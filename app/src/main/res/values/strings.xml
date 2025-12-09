@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">RoomSathi</string>
     <string name="title_activity_profile">ProfileActivity</string>
+    <string name="title_activity_message">MessageActivity</string>
+    <string name="title_activity_dashboard">DashboardActivity</string>
+    <string name="title_activity_inbox">InboxActivity</string>
 </resources>
