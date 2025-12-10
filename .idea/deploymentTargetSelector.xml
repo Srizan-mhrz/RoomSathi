@@ -18,19 +18,19 @@
       <SelectionState runConfigName="AddingPropertyScreenPreview">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="HomepageActivity">
+      <SelectionState runConfigName="InboxActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="HomepageActivity (1)">
+      <SelectionState runConfigName="InboxActivity (1)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="DashboardActivity">
+      <SelectionState runConfigName="InboxActivity (2)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="DashboardActivity (1)">
+      <SelectionState runConfigName="InboxActivity (3)">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="DashboardActivity (2)">
+      <SelectionState runConfigName="SeeAllActivity">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
