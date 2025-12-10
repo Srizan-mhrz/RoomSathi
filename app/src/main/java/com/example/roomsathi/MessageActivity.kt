@@ -64,7 +64,7 @@ fun MessageBody() {
                 )
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Search bar
             Card(
