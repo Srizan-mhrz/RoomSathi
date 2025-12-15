@@ -34,9 +34,9 @@ class ForgotPassword : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RoomSathiTheme {
+
                 ForgotPasswordScreen()
-            }
+
         }
     }
 }
@@ -76,7 +76,7 @@ fun ForgotPasswordScreen() {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 24.dp, vertical = 16.dp), // Added consistent padding
+                .padding(horizontal = 24.dp, vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -188,12 +188,11 @@ fun PasswordField(
                 if (isPasswordField) {
                     IconButton(onClick = { onVisibilityChange(!isPasswordVisible) }) {
                         Icon(
-                            // --- CORRECTED SECTION ---
-                            // Use painterResource to load your own drawable icons
+
                             painter = if (isPasswordVisible)
-                                painterResource(id = R.drawable.outline_visibility_off_24)
+                                painterResource(id = R.drawable.baseline_visibility_24)
                             else
-                                painterResource(id = R.drawable.baseline_visibility_24),
+                                painterResource(id = R.drawable.outline_visibility_off_24),
                             contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
                         )
                     }
@@ -213,7 +212,7 @@ fun PasswordField(
 @Preview(showBackground = true)
 @Composable
 fun ForgotPasswordScreenPreview() {
-    RoomSathiTheme {
+
         ForgotPasswordScreen()
-    }
+
 }
