@@ -7,8 +7,9 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -28,109 +29,127 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomsathi.ui.theme.*
 
+data class ReviewData(
+    val id: Int,
+    val userName: String,
+    val userImage: Int,
+    val rating: Double,
+    val comment: String
+)
+
+val reviewsList = listOf(
+    ReviewData(1, "Kim Borrdy", R.drawable.billieeilish, 4.5, "Amazing! The room is good than the picture. Thanks for amazing experience!"),
+    ReviewData(2, "Mirai Kamazuki", R.drawable.billieeilish, 5.0, "The service is on point, and I really like the facilities. Good job!"),
+    ReviewData(3, "Jzenklen", R.drawable.billieeilish, 5.0, "The service is on point, and I really like the facilities. Good job!"),
+    ReviewData(4, "Rezikan Akay", R.drawable.billieeilish, 5.0, "The service is on point, and I really like the facilities. Good job!"),
+    ReviewData(5, "Rezingkaly", R.drawable.billieeilish, 5.0, "The service is on point, and I really like the facilities. Good job!")
+)
+
 @Composable
 fun GlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    val cornerShape = RoundedCornerShape(16.dp)
-
+    val cornerShape = RoundedCornerShape(20.dp)
     Box(
         modifier = modifier
             .clip(cornerShape)
-            .border(
-                width = 1.dp,
-                color = White.copy(alpha = 0.3f),
-                shape = cornerShape
-            )
+            .border(1.dp, White.copy(alpha = 0.2f), cornerShape)
     ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .background(White.copy(alpha = 0.15f))
-                .blur(20.dp)
+                .background(White.copy(alpha = 0.1f))
+                .blur(25.dp)
         )
-
-        Box(modifier = Modifier.padding(16.dp)) {
+        Box(modifier = Modifier.padding(20.dp)) {
             content()
         }
     }
 }
 
-class ProfileActivity : ComponentActivity() {
+class ReviewsActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ProfileScreen()
+            ReviewsScreen()
         }
     }
 }
 
 @Composable
-fun ProfileScreen() {
-    val backgroundColor = LightBlue
-
-    Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
-
+fun ReviewsScreen() {
+    Box(modifier = Modifier.fillMaxSize().background(LightBlue)) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent
-        ) { paddingValues ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+        ) { innerPadding ->
+            LazyColumn(
+                modifier = Modifier.fillMaxSize().padding(innerPadding),
+                contentPadding = PaddingValues(16.dp)
             ) {
-                GlassSurface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 24.dp)
-                ) {
-                    ProfileHeaderContent(
-                        profileName = "Billie Eilish",
-                        profileHandle = "@billieeillish123",
-                        profileImageRes = R.drawable.billieeilish
-                    )
-                }
-
-                GlassSurface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 24.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(vertical = 4.dp)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        ProfileItem(
-                            iconRes = R.drawable.outline_location_on_24,
-                            label = "Location",
-                            onClick = { }
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_arrow_back_ios_24),
+                            contentDescription = null,
+                            tint = White,
+                            modifier = Modifier.size(24.dp)
                         )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
-                        ProfileItem(
-                            iconRes = R.drawable.baseline_bookmark_24,
-                            label = "Saved",
-                            onClick = { }
-                        )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
-                        ProfileItem(
-                            iconRes = R.drawable.baseline_history_24,
-                            label = "History",
-                            onClick = { }
-                        )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
-                        ProfileItem(
-                            iconRes = R.drawable.baseline_settings_24,
-                            label = "Privacy setting",
-                            onClick = { }
-                        )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
-                        ProfileItem(
-                            iconRes = R.drawable.baseline_logout_24,
-                            label = "Log Out",
-                            onClick = { },
-                            isLogout = true
+                        Text("Reviews", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_settings_24),
+                            contentDescription = null,
+                            tint = White,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    GlassSurface(modifier = Modifier.fillMaxWidth()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text("4.4", fontSize = 48.sp, color = White, fontWeight = FontWeight.Bold)
+                                Row {
+                                    repeat(4) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.baseline_star_24),
+                                            contentDescription = null,
+                                            tint = Color(0xFFFFC107),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                    Icon(
+                                        painter = painterResource(R.drawable.baseline_star_24),
+                                        contentDescription = null,
+                                        tint = White.copy(alpha = 0.3f),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                                Text("Based on 532 review", color = White.copy(alpha = 0.6f), fontSize = 12.sp)
+                            }
+                            Column(modifier = Modifier.weight(1.2f)) {
+                                RatingProgress(5, 0.8f)
+                                RatingProgress(4, 0.6f)
+                                RatingProgress(3, 0.4f)
+                                RatingProgress(2, 0.2f)
+                                RatingProgress(1, 0.1f)
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(25.dp))
+                    Text("Reviews (532)", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
+                items(reviewsList) { review ->
+                    ReviewCard(review)
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
@@ -138,101 +157,52 @@ fun ProfileScreen() {
 }
 
 @Composable
-fun ProfileHeaderContent(
-    profileName: String,
-    profileHandle: String,
-    profileImageRes: Int
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = painterResource(profileImageRes),
-            contentDescription = null,
-            modifier = Modifier
-                .size(70.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                profileName,
-                style = TextStyle(
-                    color = White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            )
-            Text(
-                profileHandle,
-                style = TextStyle(
-                    color = Color.LightGray.copy(alpha = 0.8f),
-                    fontSize = 14.sp
-                )
-            )
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Button(
-            onClick = { },
-            colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Text("Edit Profile", color = White)
-        }
-    }
-}
-
-@Composable
-fun ProfileItem(
-    iconRes: Int,
-    label: String,
-    onClick: () -> Unit,
-    isLogout: Boolean = false
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = if (isLogout) Color(0xFFFF4444) else White
-        )
-
-        Spacer(modifier = Modifier.width(20.dp))
-
-        Text(
-            label,
-            modifier = Modifier.weight(1f),
-            style = TextStyle(
-                color = White,
-                fontSize = 18.sp
-            )
-        )
-
-        Icon(
-            painter = painterResource(R.drawable.baseline_arrow_forward_ios_24),
-            contentDescription = null,
-            modifier = Modifier.size(16.dp),
-            tint = White.copy(alpha = 0.8f)
+fun RatingProgress(star: Int, progress: Float) {
+    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
+        Text(star.toString(), color = White, fontSize = 12.sp, modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(8.dp))
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.weight(1f).height(6.dp).clip(CircleShape),
+            color = Color(0xFFFF1744),
+            trackColor = White.copy(alpha = 0.1f)
         )
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun ProfileScreenPreview() {
-    ProfileScreen()
+fun ReviewCard(review: ReviewData) {
+    GlassSurface(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.Top) {
+            Image(
+                painter = painterResource(review.userImage),
+                contentDescription = null,
+                modifier = Modifier.size(50.dp).clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.width(15.dp))
+            Column {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(review.userName, color = White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_star_24),
+                            contentDescription = null,
+                            tint = Color(0xFFFFC107),
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(review.rating.toString(), color = White, fontSize = 14.sp, modifier = Modifier.padding(start = 4.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(review.comment, color = White.copy(alpha = 0.7f), fontSize = 13.sp, lineHeight = 18.sp)
+            }
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewReviews() {
+    ReviewsScreen()
 }
