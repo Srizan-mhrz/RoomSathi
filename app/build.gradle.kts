@@ -56,6 +56,7 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.database)
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.10.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
