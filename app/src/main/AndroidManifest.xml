@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ProfileActivity"
+            android:name=".ProfileScreen"
             android:exported="true"
             android:label="@string/title_activity_profile"
             android:theme="@style/Theme.RoomSathi">
