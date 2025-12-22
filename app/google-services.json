@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "941603235618",
+    "firebase_url": "https://roomsathi-fc928-default-rtdb.firebaseio.com",
+    "project_id": "roomsathi-fc928",
+    "storage_bucket": "roomsathi-fc928.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:941603235618:android:c345b1d7b1210a8fe5a77b",
+        "android_client_info": {
+          "package_name": "com.example.roomsathi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArrkFADyE-fd_Js6yVvD3voVLwakDofN8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
