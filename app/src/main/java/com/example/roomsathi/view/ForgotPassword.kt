@@ -1,6 +1,7 @@
 package com.example.roomsathi.view
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -27,7 +29,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomsathi.R
+import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.ui.theme.RoomSathiTheme
+import com.example.roomsathi.viewmodel.UserViewModel
 
 class ForgotPassword : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,6 +54,9 @@ fun ForgotPasswordScreen() {
     var confirmPassword by remember { mutableStateOf("") }
     var newPasswordVisibility by remember { mutableStateOf(false) }
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
+
 
     Scaffold(
         topBar = {
@@ -106,41 +113,22 @@ fun ForgotPasswordScreen() {
             )
 
             Spacer(Modifier.height(24.dp))
-            PasswordField(
-                label = "New Password",
-                value = newPassword,
-                onValueChange = { newPassword = it },
-                placeholder = "Enter new password",
-                keyboardType = KeyboardType.Password,
-                isPasswordVisible = newPasswordVisibility,
-                onVisibilityChange = { newPasswordVisibility = it }
-            )
-
-            Spacer(Modifier.height(16.dp))
-            PasswordField(
-                label = "Confirm Password",
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                placeholder = "Confirm new password",
-                keyboardType = KeyboardType.Password,
-                isPasswordVisible = confirmPasswordVisibility,
-                onVisibilityChange = { confirmPasswordVisibility = it },
-                // Simple validation example
-                isError = newPassword.isNotEmpty() && confirmPassword.isNotEmpty() && newPassword != confirmPassword
-            )
-            if (newPassword.isNotEmpty() && confirmPassword.isNotEmpty() && newPassword != confirmPassword) {
-                Text(
-                    text = "Passwords do not match",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, top = 2.dp)
-                )
-            }
 
 
             Spacer(Modifier.height(32.dp))
             Button(
-                onClick = { /* TODO: Handle password reset logic */ },
+                onClick = {  userViewModel.forgetPassword(email){
+                        success, msg ->
+                    if (success){
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                }
+                },
+                enabled = email.isNotBlank() // Button is only enabled if the field is not blank
+            ,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
