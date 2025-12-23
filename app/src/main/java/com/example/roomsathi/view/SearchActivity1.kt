@@ -50,7 +50,7 @@ class SearchActivity1 : ComponentActivity() {
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen() {
-    var destination by remember { mutableStateOf("Bali, Indonesia") }
+    var destination by remember { mutableStateOf("Kathmandu, Nepal") }
     var rooms by remember { mutableStateOf("1") }
     var minPrice by remember { mutableStateOf("100") }
     var maxPrice by remember { mutableStateOf("400") }
