@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">RoomSathi</string>
     <string name="title_activity_profile">ProfileActivity</string>
+    <string name="title_activity_splash">SplashActivity</string>
+    <string name="title_activity_registration">RegistrationActivity</string>
+    <string name="title_activity_forget">ForgetPassword</string>
 </resources>
