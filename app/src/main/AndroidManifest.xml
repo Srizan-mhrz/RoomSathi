@@ -12,9 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RoomSathi">
         <activity
-            android:name=".view.SearchActivity1"
+            android:name=".view.SplashActivity"
             android:exported="true"
-            android:label="@string/title_activity_search1"
+            android:label="@string/title_activity_splash"
             android:theme="@style/Theme.RoomSathi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,30 +23,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.RegistrationActivity"
-            android:exported="true"
-            android:label="@string/title_activity_registration"
-            android:theme="@style/Theme.RoomSathi">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".view.MainActivity"
-            android:exported="true"
-            android:label="@string/title_activity_main"
-            android:theme="@style/Theme.RoomSathi"
-            tools:ignore="MissingClass">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".ProfileActivity"
+            android:name=".ProfileScreen"
             android:exported="true"
             android:label="@string/title_activity_profile"
             android:theme="@style/Theme.RoomSathi">
