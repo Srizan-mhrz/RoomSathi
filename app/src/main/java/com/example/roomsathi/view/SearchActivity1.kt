@@ -13,8 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.DoorFront
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,12 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.roomsathi.R
 import com.example.roomsathi.view.ui.theme.RoomSathiTheme
 
 class SearchActivity1 : ComponentActivity() {
@@ -112,7 +112,7 @@ fun SearchScreen() {
                         SearchInputField(
                             value = destination,
                             onValueChange = { destination = it },
-                            icon = Icons.Outlined.LocationOn,
+                            painter = painterResource(id = R.drawable.outline_location_on_24),
                             backgroundColor = darkCardColor
                         )
                     }
@@ -123,7 +123,7 @@ fun SearchScreen() {
                         SearchInputField(
                             value = rooms,
                             onValueChange = { rooms = it },
-                            icon = Icons.Outlined.DoorFront,
+                            painter = painterResource(id = R.drawable.outline_door_open_24),
                             backgroundColor = darkCardColor
                         )
                     }
@@ -169,24 +169,22 @@ fun SearchScreen() {
                 }
 
                 item {
-                    FilterSection(label = "History") {
+                    FilterSection(label = "Amenity") {
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             val amenities = listOf(
-                                "Air Conditioner" to Icons.Default.Air,
-                                "Wi-Fi" to Icons.Default.Wifi,
-                                "Swimming Pool" to Icons.Default.Pool,
-                                "Restaurant" to Icons.Default.Restaurant,
-                                "Minibar" to Icons.Default.LocalBar,
-                                "Fitness Center" to Icons.Default.FitnessCenter
+                                "Air Conditioner",
+                                "Wi-Fi",
+                                "Parking",
+                                "Restaurant",
+                                "Fitness Center"
                             )
-                            amenities.forEach { (name, icon) ->
+                            amenities.forEach { name ->
                                 AmenityChip(
                                     name = name,
-                                    icon = icon,
                                     isSelected = name in selectedAmenities,
                                     onClick = {
                                         selectedAmenities = if (name in selectedAmenities) {
@@ -200,7 +198,7 @@ fun SearchScreen() {
                         }
                     }
                 }
-                
+
                 item { Spacer(modifier = Modifier.height(16.dp)) }
             }
         }
@@ -229,7 +227,7 @@ fun FilterSection(
 fun SearchInputField(
     value: String,
     onValueChange: (String) -> Unit,
-    icon: ImageVector? = null,
+    painter: Painter? = null,
     prefix: String? = null,
     backgroundColor: Color
 ) {
@@ -241,8 +239,8 @@ fun SearchInputField(
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        if (icon != null) {
-            Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
+        if (painter != null) {
+            Icon(painter, contentDescription = null, tint = Color.White, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(12.dp))
         }
         if (prefix != null) {
@@ -279,7 +277,7 @@ fun RatingButton(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector = if (isSelected) Icons.Default.Star else Icons.Default.StarBorder,
+                painter = painterResource(id = R.drawable.baseline_star_24),
                 contentDescription = null,
                 tint = contentColor,
                 modifier = Modifier.size(16.dp)
@@ -293,7 +291,6 @@ fun RatingButton(
 @Composable
 fun AmenityChip(
     name: String,
-    icon: ImageVector,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -310,8 +307,10 @@ fun AmenityChip(
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = contentColor, modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.width(8.dp))
+        if (isSelected) {
+            Icon(Icons.Default.Done, contentDescription = null, tint = contentColor, modifier = Modifier.size(18.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+        }
         Text(text = name, color = contentColor, fontSize = 14.sp, fontWeight = FontWeight.Medium)
     }
 }
