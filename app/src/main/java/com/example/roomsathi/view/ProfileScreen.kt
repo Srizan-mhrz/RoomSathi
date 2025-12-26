@@ -54,18 +54,18 @@ fun GlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit)
     }
 }
 
-class ProfileActivity : ComponentActivity() {
+class ProfileScreen : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ProfileScreen()
+            ProfileScreenBody()
         }
     }
 }
 
 @Composable
-fun ProfileScreen() {
+fun ProfileScreenBody() {
     val backgroundColor = LightBlue
 
     Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
