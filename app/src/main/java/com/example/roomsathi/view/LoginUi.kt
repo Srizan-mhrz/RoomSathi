@@ -1,6 +1,7 @@
 package com.example.roomsathi.view
 
 
+import android.app.Activity
 import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
@@ -44,7 +45,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.roomsathi.ProfileActivity
+
+import com.example.roomsathi.ProfileScreen
+import com.example.roomsathi.repository.UserRepoImpl
+import com.example.roomsathi.viewmodel.UserViewModel
 
 
 class LoginUi : ComponentActivity() {
@@ -62,9 +66,10 @@ fun Login() {
     var password by remember { mutableStateOf("") }
     var rememberMe by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val sharedPreferences = context.getSharedPreferences("user", MODE_PRIVATE)
-    val localEmail : String? = sharedPreferences.getString("email","")
-    val localPassword : String? = sharedPreferences.getString("password","")
+    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
+    val activity= context as? Activity
+
+
 
     Scaffold { padding ->
         Column(
@@ -177,16 +182,19 @@ fun Login() {
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = { if(localEmail == email && localPassword == password){
-                    val intent = Intent(
-                        context, ProfileActivity::class.java
-                    )
+                onClick = {  userViewModel.login(email, password) {success, msg->
+                    if (success) {
+                        val intent = Intent(
+                            context, ProfileScreen::class.java
+                        )
 
-                    context.startActivity(intent)
-
-                }else{
-                    Toast.makeText(context,"Invalid login", Toast.LENGTH_SHORT).show()
-                } },
+                        context.startActivity(intent)
+                        activity?.finish()
+                    } else {
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG)
+                            .show()
+                    }
+                }},
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth().height(100.dp)
                     .padding(horizontal = 12.dp, vertical = 20.dp)
