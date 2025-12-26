@@ -55,7 +55,7 @@ fun SearchScreen() {
     var minPrice by remember { mutableStateOf("100") }
     var maxPrice by remember { mutableStateOf("400") }
     var selectedRating by remember { mutableIntStateOf(4) }
-    var selectedAmenities by remember { mutableStateOf(setOf("Wi-Fi", "Swimming Pool", "Fitness Center")) }
+    var selectedAmenities by remember { mutableStateOf(setOf("Wi-Fi", "Swimming Pool", "Fitness Center","Attached Bathroom","Kitchen")) }
 
     val darkCardColor = Color(0xFF2D2D2D)
 
