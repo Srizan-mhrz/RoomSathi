@@ -1,6 +1,8 @@
 package com.example.roomsathi.view
 
+import android.app.Activity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -42,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -54,7 +57,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomsathi.R
-import com.example.roomsathi.view.ui.theme.RoomSathiTheme
+import com.example.roomsathi.model.UserModel
+import com.example.roomsathi.repository.UserRepoImpl
+import com.example.roomsathi.ui.theme.RoomSathiTheme
+import com.example.roomsathi.viewmodel.UserViewModel
+
 
 class RegistrationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +79,9 @@ class RegistrationActivity : ComponentActivity() {
 @Composable
 fun RegistrationScreen(){
 
+    val context = LocalContext.current
+    val activity= context as? Activity
+
     var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -79,6 +89,7 @@ fun RegistrationScreen(){
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
     var confirmPasswordVisibility by remember { mutableStateOf(false) }
+    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
 
     Scaffold(
         topBar = {
@@ -176,7 +187,31 @@ fun RegistrationScreen(){
 
 
             Button(
-                onClick = { /* TODO: Handle registration logic */ },
+                onClick = {  if (fullName.isEmpty() || phoneNumber.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+                    Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                } else if (password != confirmPassword) {
+                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                } else {
+                    userViewModel.register(email, password) { success, msg, userId ->
+                        if (success){
+                            var model = UserModel(
+                                userId = userId,
+                                fullName = fullName,
+                                phoneNumber = phoneNumber,
+                                email = email
+                            )
+                            userViewModel.addUserToDatabase(userId, model){success,msg->
+                                if(success){
+                                    activity?.finish()
+                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+
+                                }
+                            }
+                        }
+                    }
+                }},
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),

@@ -21,6 +21,18 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+        </activity>
+        <activity
+            android:name=".view.RegistrationActivity"
+            android:exported="true"
+            android:label="@string/title_activity_registration"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
         <activity
             android:name=".ProfileScreen"
@@ -34,9 +46,20 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".view.LoginUi"
+            android:exported="true"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".view.ForgotPassword"
             android:exported="true"
-            android:label="@string/title_activity_main"
+            android:label="@string/title_activity_forget"
             android:theme="@style/Theme.RoomSathi"
             tools:ignore="MissingClass">
             <intent-filter>
