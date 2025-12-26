@@ -1,5 +1,7 @@
 package com.example.roomsathi.view
 
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,9 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-// Import the correct visibility icons from the Material Icons library
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -35,7 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.example.roomsathi.R // Make sure you have a placeholder image in your drawables
+import com.example.roomsathi.R
 
 @Composable
 fun EditProfileScreen() {
@@ -111,7 +110,7 @@ fun EditProfileTopAppBar(onBackClicked: () -> Unit, onSaveClicked: () -> Unit) {
 @Composable
 fun ProfileImageWithEditor() {
     Box(contentAlignment = Alignment.Center) {
-        // Using Coil to load the image. Replace with your actual image URL or a placeholder.
+
         Image(
             painter = rememberAsyncImagePainter("https://i.insider.com/655e4e2c57f2723c21a316e6?width=700"),
             contentDescription = "Profile Image",
@@ -139,13 +138,13 @@ fun ProfileImageWithEditor() {
                 tint = Color.Black
             )
         }
-        // The checkmark icon from the design appears over the main content area
+
         Icon(
             imageVector = Icons.Default.Check,
             contentDescription = "Save Changes",
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .offset(x = 100.dp, y = (-50).dp) // Adjust position to match the design
+                .offset(x = 100.dp, y = (-50).dp)
                 .size(36.dp)
                 .clickable { /* TODO: Handle save action */ },
             tint = Color.Black
@@ -163,13 +162,13 @@ fun EditProfileTextField(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        // *** FIX: Simplified OutlinedTextField for Material 3 ***
+
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-            // Use M3 colors to set the background and remove borders
+
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Gray.copy(alpha = 0.15f),
                 unfocusedContainerColor = Color.Gray.copy(alpha = 0.15f),
@@ -203,14 +202,14 @@ fun PasswordTextField(
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             trailingIcon = {
-                // *** FIX: Directly use the imported Material Icons ***
+
                 val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
                 val description = if (passwordVisible) "Hide password" else "Show password"
                 IconButton(onClick = { onPasswordVisibilityChange(!passwordVisible) }) {
                     Icon(imageVector = image, description)
                 }
             },
-            // *** FIX: Simplified colors for Material 3 ***
+
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.Gray.copy(alpha = 0.15f),
                 unfocusedContainerColor = Color.Gray.copy(alpha = 0.15f),
@@ -238,11 +237,11 @@ fun PhoneNumberField(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min) // Ensures row children can match height
+                .height(IntrinsicSize.Min)
                 .background(Color.Gray.copy(alpha = 0.15f), RoundedCornerShape(16.dp)),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Country Code Picker
+
             Row(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 14.dp)
@@ -253,7 +252,7 @@ fun PhoneNumberField(
                 Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Select country code")
             }
 
-            // Divider
+
             Box(
                 modifier = Modifier
                     .width(1.dp)
@@ -262,7 +261,7 @@ fun PhoneNumberField(
                     .background(Color.Gray.copy(alpha = 0.5f))
             )
 
-            // Phone Number Input
+
             BasicTextField(
                 value = phoneNumber,
                 onValueChange = onPhoneNumberChange,
