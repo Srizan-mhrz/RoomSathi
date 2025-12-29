@@ -346,7 +346,6 @@
 
 package com.example.roomsathi.view
 
-import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -362,14 +361,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -388,17 +385,14 @@ class DashboardActivity : ComponentActivity() {
     }
 }
 
+/* ---------------- Glass Surface ---------------- */
+
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(20.dp)
-    val context = LocalContext.current
-
-    val activity= context as? Activity
-
-
 
     Box(
         modifier = modifier
@@ -417,10 +411,11 @@ fun GlassSurface(
     }
 }
 
+/* ---------------- Main Layout ---------------- */
+
 @Composable
 fun DashboardBody() {
-    var selectedIndex by rememberSaveable { mutableStateOf(0) }
-    val context = LocalContext.current
+    var selectedIndex by remember { mutableStateOf(0) }
 
     Box(
         modifier = Modifier
@@ -439,21 +434,15 @@ fun DashboardBody() {
         ) { padding ->
             when (selectedIndex) {
                 0 -> DashboardContent(padding)
-                1 -> ListingScreen()          // Listing
-                2 -> MessageBody { selectedUser ->
-                    val intent = android.content.Intent(context, InboxActivity::class.java).apply {
-                        putExtra("RECEIVER_ID", selectedUser.uid)
-                        putExtra("RECEIVER_NAME", selectedUser.name)
-                    }
-                    context.startActivity(intent)
-                }          // Messages
-                3 -> ProfileScreen()          // Profile
+                1 -> ListingScreen()
+                2 -> MessageScreen()
+                3 -> ProfileScreen()
             }
         }
     }
 }
 
-//top bar
+/* ---------------- Top Bar ---------------- */
 
 @Composable
 fun DashboardTopBar() {
@@ -700,8 +689,6 @@ fun BottomNavItem(
         )
     }
 }
-
-
 
 /* ---------------- Other Screens ---------------- */
 
