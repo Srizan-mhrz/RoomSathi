@@ -361,6 +361,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -384,8 +385,6 @@ class DashboardActivity : ComponentActivity() {
         }
     }
 }
-
-/* ---------------- Glass Surface ---------------- */
 
 @Composable
 fun GlassSurface(
@@ -411,11 +410,9 @@ fun GlassSurface(
     }
 }
 
-/* ---------------- Main Layout ---------------- */
-
 @Composable
 fun DashboardBody() {
-    var selectedIndex by remember { mutableStateOf(0) }
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
 
     Box(
         modifier = Modifier
@@ -434,15 +431,15 @@ fun DashboardBody() {
         ) { padding ->
             when (selectedIndex) {
                 0 -> DashboardContent(padding)
-                1 -> ListingScreen()
-                2 -> MessageScreen()
-                3 -> ProfileScreen()
+                1 -> ListingScreen()          // Listing
+                2 -> MessageBody()            // Messages
+                3 -> ProfileScreen()          // Profile
             }
         }
     }
 }
 
-/* ---------------- Top Bar ---------------- */
+//top bar
 
 @Composable
 fun DashboardTopBar() {
@@ -689,6 +686,8 @@ fun BottomNavItem(
         )
     }
 }
+
+
 
 /* ---------------- Other Screens ---------------- */
 
