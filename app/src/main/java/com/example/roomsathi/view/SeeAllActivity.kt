@@ -1,4 +1,4 @@
-package com.example.roomsathi
+package com.example.roomsathi.view
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.roomsathi.R
 import com.example.roomsathi.ui.theme.Blue
 import com.example.roomsathi.ui.theme.DarkBlue
 import com.example.roomsathi.ui.theme.LightBlue
@@ -137,7 +138,7 @@ fun SeeBody() {
             // space under search
             item { Spacer(modifier = Modifier.height(18.dp)) }
 
-            // -------- ROOM LISTING ITEMS ----------
+            // ROOM LISTING ITEMS
             items(roomList) { room ->
                 RoomListItem(room = room)
             }
