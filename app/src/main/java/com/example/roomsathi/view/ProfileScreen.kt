@@ -54,15 +54,7 @@ fun GlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit)
     }
 }
 
-class ProfileActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            ProfileScreen()
-        }
-    }
-}
+
 
 @Composable
 fun ProfileScreen() {
