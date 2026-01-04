@@ -35,15 +35,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.roomsathi.R
-
+import com.example.roomsathi.repository.UserRepoImpl
+import com.example.roomsathi.viewmodel.UserViewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 @Composable
 fun EditProfileScreen() {
     // State variables for each text field
-    var name by rememberSaveable { mutableStateOf("Abc") }
-    var email by rememberSaveable { mutableStateOf("abc@gmail.com") }
-    var username by rememberSaveable { mutableStateOf("Abc") }
-    var password by rememberSaveable { mutableStateOf("123456789") }
-    var phoneNumber by rememberSaveable { mutableStateOf("9812345678") }
+    val userViewModel= remember { UserViewModel(UserRepoImpl()) }
+    val user =userViewModel.users.observeAsState(initial=null)
+    var name by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var username by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var phoneNumber by rememberSaveable { mutableStateOf("") }
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
