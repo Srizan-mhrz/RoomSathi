@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomsathi.ui.theme.*
+import com.example.roomsathi.view.GlassSurface
 
 @Composable
 fun GlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
