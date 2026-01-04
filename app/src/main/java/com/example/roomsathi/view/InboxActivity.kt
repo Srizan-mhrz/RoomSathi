@@ -126,9 +126,14 @@ fun InboxBody(senderId: String, receiverId: String, receiverName: String) {
 @Composable
 fun ChatInputBar(text: String, onValueChange: (String) -> Unit, onSendClick: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().background(DarkBlue).padding(8.dp).navigationBarsPadding(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DarkBlue)
+            .padding(8.dp)
+            .navigationBarsPadding()
+            .imePadding(),
         verticalAlignment = Alignment.CenterVertically
-    ) {
+    ){
         Icon(painterResource(R.drawable.baseline_add_24), null, Modifier.size(24.dp), tint = White)
         Spacer(Modifier.width(8.dp))
 
