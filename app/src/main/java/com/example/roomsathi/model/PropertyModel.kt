@@ -1,9 +1,10 @@
 package com.example.roomsathi.model
 
-import android.R
+
 
 data class PropertyModel
     (
+    val ownerId : String = "",
     val propertyId: String = "",
     val userId: String = "",
     val title: String = "",
@@ -11,5 +12,9 @@ data class PropertyModel
     val description: String = "",
     val cost: Double = 0.0,
     val status: Boolean = false,
+    val indexOfImages: Int = 0,
+    val noOfImages: Int = 0,
+
+
 ){
 }
