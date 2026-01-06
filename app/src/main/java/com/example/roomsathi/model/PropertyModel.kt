@@ -12,7 +12,7 @@ data class PropertyModel
     val description: String = "",
     val cost: Double = 0.0,
     val status: Boolean = false,
-    val indexOfImages: Int = 0,
+    val indexOfImages: Long = -1,
     val noOfImages: Int = 0,
 
 

@@ -1,67 +1,127 @@
 package com.example.roomsathi.repository
 
 import com.example.roomsathi.model.PropertyModel
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.*
 
 class PropertyRepoImpl : PropertyRepo {
 
-    private val database = FirebaseDatabase.getInstance().getReference("Properties")
 
-    override fun addProperty(userId: String, property: PropertyModel, callback: (isSuccess: Boolean, message: String, propertyId: String?) -> Unit) {
-        // Generate a unique key for the new property
-        val propertyId = database.push().key
+    private val propertiesRef = FirebaseDatabase.getInstance().getReference("Properties")
 
-        if (propertyId == null) {
-            callback(false, "Couldn't generate a property ID.", null)
-            return
-        }
 
-        // Set the ownerId in the property model before saving
-        val newProperty = property.copy(ownerId = userId)
+    private val imagesRef = FirebaseDatabase.getInstance().getReference("Images")
 
-        database.child(propertyId).setValue(newProperty)
-            .addOnSuccessListener {
-                callback(true, "Property added successfully.", propertyId)
+
+
+    private val imageCounterRef = FirebaseDatabase.getInstance().getReference("ImageCounter")
+
+    override fun addProperty(
+        userId: String,
+        property: PropertyModel,
+        imageUrls: List<String>,
+        callback: (isSuccess: Boolean, message: String, propertyId: String?) -> Unit
+    ) {
+
+        imageCounterRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+
+                val currentCount = currentData.getValue(Long::class.java) ?: 0L
+
+
+                val startIndex = currentCount
+                val newCount = currentCount + imageUrls.size
+
+
+                currentData.value = newCount
+
+
+                currentData.child("context/startIndex").value = startIndex
+
+                return Transaction.success(currentData)
             }
-            .addOnFailureListener { exception ->
-                callback(false, "Failed to add property: ${exception.message}", null)
+
+
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                dataSnapshot: DataSnapshot?
+            ) {
+                if (error != null || !committed) {
+                    callback(false, "Failed to secure image index: ${error?.message}", null)
+                    return
+                }
+
+
+
+                val startIndex = dataSnapshot?.child("context/startIndex")?.getValue(Long::class.java)
+
+                if (startIndex == null) {
+                    callback(false, "Internal error: Could not retrieve start index.", null)
+                    return
+                }
+
+
+                val imageUpdates = mutableMapOf<String, Any>()
+                imageUrls.forEachIndexed { index, url ->
+                    val imageDbIndex = startIndex + index
+                    imageUpdates[imageDbIndex.toString()] = url
+                }
+
+                imagesRef.updateChildren(imageUpdates).addOnSuccessListener {
+
+                    val propertyId = propertiesRef.push().key
+                    if (propertyId == null) {
+                        callback(false, "Could not generate property ID.", null)
+                        return@addOnSuccessListener
+                    }
+
+                    val finalProperty = property.copy(
+                        ownerId = userId,
+                        indexOfImages = startIndex,
+                        noOfImages = imageUrls.size
+                    )
+
+                    propertiesRef.child(propertyId).setValue(finalProperty)
+                        .addOnSuccessListener {
+                            callback(true, "Property added successfully.", propertyId)
+                        }
+                        .addOnFailureListener {
+                            callback(false, "Failed to save property data.", null)
+                        }
+                }.addOnFailureListener {
+                    callback(false, "Failed to save images.", null)
+                }
             }
+        })
     }
 
-    override fun updateProperty(propertyId: String, updatedProperty: PropertyModel, callback: (isSuccess: Boolean, message: String) -> Unit) {
-        database.child(propertyId).setValue(updatedProperty)
-            .addOnSuccessListener {
-                callback(true, "Property updated successfully.")
-            }
-            .addOnFailureListener { exception ->
-                callback(false, "Failed to update property: ${exception.message}")
-            }
-    }
+    override fun deleteProperty(
+        propertyId: String,
+        callback: (isSuccess: Boolean, message: String) -> Unit
+    ) {
 
-    override fun deleteProperty(propertyId: String, callback: (isSuccess: Boolean, message: String) -> Unit) {
-        database.child(propertyId).removeValue()
+        propertiesRef.child(propertyId).removeValue()
             .addOnSuccessListener {
                 callback(true, "Property deleted successfully.")
             }
-            .addOnFailureListener { exception ->
-                callback(false, "Failed to delete property: ${exception.message}")
+            .addOnFailureListener {
+                callback(false, "Failed to delete property: ${it.message}")
             }
     }
 
-    override fun getPropertyById(propertyId: String, callback: (isSuccess: Boolean, message: String, property: PropertyModel?) -> Unit) {
-        database.child(propertyId).addListenerForSingleValueEvent(object : ValueEventListener {
+    override fun getPropertyById(
+        propertyId: String,
+        callback: (isSuccess: Boolean, message: String, property: PropertyModel?) -> Unit
+    ) {
+        propertiesRef.child(propertyId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val property = snapshot.getValue(PropertyModel::class.java)
                 if (property != null) {
-                    callback(true, "Property fetched successfully.", property)
+                    callback(true, "Property fetched.", property)
                 } else {
                     callback(false, "Property not found.", null)
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
                 callback(false, "Database error: ${error.message}", null)
             }
@@ -69,10 +129,10 @@ class PropertyRepoImpl : PropertyRepo {
     }
 
     override fun getAllProperties(callback: (properties: List<Pair<String, PropertyModel>>) -> Unit) {
-        database.addValueEventListener(object : ValueEventListener {
+        propertiesRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val propertyList = mutableListOf<Pair<String, PropertyModel>>()
-                for (propertySnapshot in snapshot.children) {
+                snapshot.children.forEach { propertySnapshot ->
                     val property = propertySnapshot.getValue(PropertyModel::class.java)
                     val propertyId = propertySnapshot.key
                     if (property != null && propertyId != null) {
@@ -81,21 +141,33 @@ class PropertyRepoImpl : PropertyRepo {
                 }
                 callback(propertyList)
             }
-
             override fun onCancelled(error: DatabaseError) {
-                // Log the error or handle it as needed
-                callback(emptyList()) // Return an empty list on error
+                callback(emptyList())
             }
         })
     }
 
-    override fun updatePropertyImages(propertyId: String, imageUrls: List<String>, callback: (isSuccess: Boolean, message: String) -> Unit) {
-        database.child(propertyId).child("images").setValue(imageUrls)
-            .addOnSuccessListener {
-                callback(true, "Images updated successfully.")
-            }
-            .addOnFailureListener { exception ->
-                callback(false, "Failed to update images: ${exception.message}")
-            }
+    override fun getPropertyImages(
+        property: PropertyModel,
+        callback: (imageUrls: List<String>?) -> Unit
+    ) {
+        if (property.noOfImages == 0 || property.indexOfImages < 0) {
+            callback(emptyList()) // No images to fetch.
+            return
+        }
+
+
+        imagesRef.orderByKey()
+            .startAt(property.indexOfImages.toString())
+            .limitToFirst(property.noOfImages)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val urls = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+                    callback(urls)
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    callback(null)
+                }
+            })
     }
 }
