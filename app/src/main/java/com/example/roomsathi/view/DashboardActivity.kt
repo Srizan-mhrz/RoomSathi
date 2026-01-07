@@ -450,7 +450,7 @@ fun DashboardBody() {
                 0 -> DashboardContent(padding)
                 1 -> ListingScreen()          // Listing
                 2 -> MessageBody()            // Messages
-                3 -> ProfileScreen()          // Profile
+                3 -> ProfileScreenBody()          // Profile
             }
         }
     }
