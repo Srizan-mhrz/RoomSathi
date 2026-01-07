@@ -11,4 +11,5 @@
     <string name="title_activity_see_all">HomepageActivity</string>
     <string name="title_activity_home_screen">HomeScreen</string>
     <string name="title_activity_profile_screen">ProfileScreen</string>
+    <string name="title_activity_listing_screen">ListingScreen</string>
 </resources>

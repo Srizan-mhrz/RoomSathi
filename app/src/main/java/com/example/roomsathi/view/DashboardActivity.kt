@@ -373,6 +373,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.roomsathi.ProfileScreenBody
 import com.example.roomsathi.R
 import com.example.roomsathi.ui.theme.*
 
@@ -421,7 +422,23 @@ fun DashboardBody() {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            topBar = { DashboardTopBar() },
+
+            // Show TopBar only on Home
+            topBar = {
+                if (selectedIndex == 0) {
+                    DashboardTopBar()
+                }
+            },
+//            // Hide BottomBar on Messages
+//            bottomBar = {
+//                if (selectedIndex != 2) {
+//                    DashboardBottomBar(
+//                        selectedIndex = selectedIndex,
+//                        onItemSelected = { selectedIndex = it }
+//                    )
+//                }
+//            }
+            // BottomBar for ALL screens (including Messages)
             bottomBar = {
                 DashboardBottomBar(
                     selectedIndex = selectedIndex,
@@ -439,7 +456,7 @@ fun DashboardBody() {
     }
 }
 
-//top bar
+//top bar \
 
 @Composable
 fun DashboardTopBar() {
@@ -632,11 +649,12 @@ fun DashboardBottomBar(
     selectedIndex: Int,
     onItemSelected: (Int) -> Unit
 ) {
-    GlassSurface(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(110.dp)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .background(DarkBlue)
+            .padding(horizontal = 16.dp, vertical = 10.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxSize(),
