@@ -26,4 +26,10 @@ interface PropertyRepo {
         property: PropertyModel,
         callback: (imageUrls: List<String>?) -> Unit
     )
+
+    fun getFilteredProperties(
+        maxCost: Double?,
+        locationQuery: String?,
+        callback: (properties: List<Pair<String, PropertyModel>>) -> Unit
+    )
 }

@@ -15,6 +15,47 @@ class PropertyRepoImpl : PropertyRepo {
 
     private val imageCounterRef = FirebaseDatabase.getInstance().getReference("ImageCounter")
 
+
+        override fun getFilteredProperties(
+            maxCost: Double?,
+            locationQuery: String?,
+            callback: (properties: List<Pair<String, PropertyModel>>) -> Unit
+        ) {
+            propertiesRef.orderByChild("status").equalTo(false)
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val propertyList = mutableListOf<Pair<String, PropertyModel>>()
+                        snapshot.children.forEach { propertySnapshot ->
+                            val property = propertySnapshot.getValue(PropertyModel::class.java)
+                            val propertyId = propertySnapshot.key
+                            if (property != null && propertyId != null) {
+                                propertyList.add(propertyId to property)
+                            }
+                        }
+
+
+                        val filteredList = propertyList.filter { (_, property) ->
+
+                            val costMatch = maxCost == null || property.cost <= maxCost
+
+
+
+                            val locationMatch = locationQuery.isNullOrBlank() ||
+                                    property.location.contains(locationQuery, ignoreCase = true) ||
+                                    property.title.contains(locationQuery, ignoreCase = true) // Also check title as you suggested
+
+                            costMatch && locationMatch
+                        }
+                        callback(filteredList)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        callback(emptyList())
+                    }
+                })
+        }
+
+
     override fun addProperty(
         userId: String,
         property: PropertyModel,
