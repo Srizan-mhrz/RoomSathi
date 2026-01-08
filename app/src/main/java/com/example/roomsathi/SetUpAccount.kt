@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 // Color constants for the dark theme
+
 val DarkBackground = Color(0xFF121212)
 val CardBackground = Color(0xFF2C2C2C)
 val AccentBlue = Color(0xFF3D9AF0)
