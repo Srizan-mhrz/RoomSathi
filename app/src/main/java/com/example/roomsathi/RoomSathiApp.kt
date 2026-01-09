@@ -9,7 +9,7 @@ class RoomSathiApp : Application() {
 
         // !! IMPORTANT: Replace with your actual Cloudinary credentials !!
         val config = mapOf(
-            "cloud_name" to "roomsathi",
+            "cloud_name" to "dkayf2ohe",
             "api_key" to "714768571673822",
             "api_secret" to "DNwQ6QeZ-I7mf0foLORMeU0IVLo"
         )

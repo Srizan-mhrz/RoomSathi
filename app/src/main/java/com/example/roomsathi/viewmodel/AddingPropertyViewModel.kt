@@ -148,7 +148,7 @@ class AddingPropertyViewModel : ViewModel() {
                 val url = suspendCancellableCoroutine { continuation ->
 
                     val requestId = MediaManager.get().upload(uri)
-                        .unsigned("YOUR_UNSIGNED_UPLOAD_PRESET")
+                        .unsigned("roomsathi")
                         .callback(object : UploadCallback {
                             override fun onStart(requestId: String) {  }
                             override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) { }

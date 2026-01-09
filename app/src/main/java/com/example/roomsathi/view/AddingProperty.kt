@@ -42,10 +42,10 @@ fun AddingPropertyScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
 
-    // 1. STATE TO HOLD THE REAL SELECTED IMAGES
+
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
-    // 2. THE GALLERY LAUNCHER
+
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
     ) { uris ->
@@ -83,7 +83,7 @@ fun AddingPropertyScreen(
                 modifier = Modifier.padding(bottom = 24.dp)
             )
 
-            // --- TEXT FIELDS ---
+
             OutlinedTextField(
                 value = title,
                 onValueChange = { title = it },
@@ -127,7 +127,7 @@ fun AddingPropertyScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // 3. IMAGE PICKER BUTTON
+
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier.fillMaxWidth(),
@@ -136,7 +136,7 @@ fun AddingPropertyScreen(
                 Text("Select Pictures from Gallery")
             }
 
-            // 4. IMAGE PREVIEW ROW
+
             if (selectedImageUris.isNotEmpty()) {
                 Spacer(Modifier.height(8.dp))
                 LazyRow(
@@ -174,7 +174,7 @@ fun AddingPropertyScreen(
                         val costDouble = cost.toDoubleOrNull() ?: 0.0
                         val ownerId = "abiabi"
 
-                        // 5. SEND REAL SELECTED URIS TO VIEWMODEL
+
                         viewModel.addPropertyWithHardcodedOwner(
                             ownerId = ownerId,
                             title = title,
@@ -185,7 +185,7 @@ fun AddingPropertyScreen(
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    // Enable button only if images are selected
+
                     enabled = selectedImageUris.isNotEmpty()
                 ) {
                     Text("Add Property")
