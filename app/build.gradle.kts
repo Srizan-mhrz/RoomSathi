@@ -51,7 +51,10 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended")
     implementation (platform("com.google.firebase:firebase-bom:32.7.0"))
     implementation ("com.google.firebase:firebase-storage")
+    implementation("com.cloudinary:cloudinary-android:2.1.0")
 
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation(libs.material)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
