@@ -172,11 +172,10 @@ fun AddingPropertyScreen(
                 Button(
                     onClick = {
                         val costDouble = cost.toDoubleOrNull() ?: 0.0
-                        val ownerId = "abiabi"
 
 
-                        viewModel.addPropertyWithHardcodedOwner(
-                            ownerId = ownerId,
+
+                        viewModel.addProperty(
                             title = title,
                             location = location,
                             description = description,
