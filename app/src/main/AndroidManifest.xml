@@ -78,6 +78,7 @@
             android:exported="true"
             android:label="@string/title_activity_inbox"
             android:theme="@style/Theme.RoomSathi">
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -89,6 +90,7 @@
             android:exported="true"
             android:label="@string/title_activity_dashboard"
             android:theme="@style/Theme.RoomSathi">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -107,9 +109,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".ProfileScreen"
+            android:name=".ProfileActivity"
             android:exported="true"
             android:label="@string/title_activity_profile_screen"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.RegistrationActivity"
+            android:exported="true"
+            android:label="@string/title_activity_login"
             android:theme="@style/Theme.RoomSathi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
