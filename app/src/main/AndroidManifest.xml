@@ -3,8 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".RoomSathiApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
+        tools:replace="android:fullBackupContent"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -109,7 +111,7 @@
         <activity
             android:name=".ProfileActivity"
             android:exported="true"
-            android:label="@string/title_activity_profile"
+            android:label="@string/title_activity_profile_screen"
             android:theme="@style/Theme.RoomSathi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -118,7 +120,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.LoginUi"
+            android:name=".view.RegistrationActivity"
             android:exported="true"
             android:label="@string/title_activity_login"
             android:theme="@style/Theme.RoomSathi">
@@ -129,11 +131,92 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".view.ForgotPassword"
+            android:name=".view.RegistrationActivity"
             android:exported="true"
-            android:label="@string/title_activity_forget"
-            android:theme="@style/Theme.RoomSathi"
-            tools:ignore="MissingClass">
+            android:label="@string/title_activity_registration"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".HomeScreen"
+            android:exported="false"
+            android:label="@string/title_activity_home_screen"
+            android:theme="@style/Theme.RoomSathi" />
+        <activity
+            android:name=".HomepageActivity"
+            android:exported="true"
+            android:label="@string/title_activity_homepage"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.SeeAllActivity"
+            android:exported="true"
+            android:label="@string/title_activity_see_all"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="MainActivity"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.InboxActivity"
+            android:exported="true"
+            android:label="@string/title_activity_inbox"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.DashboardActivity"
+            android:exported="true"
+            android:label="@string/title_activity_dashboard"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.MessageActivity"
+            android:exported="true"
+            android:label="@string/title_activity_message"
+            android:theme="@style/Theme.RoomSathi">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ProfileActivity"
+            android:exported="true"
+            android:label="@string/title_activity_profile"
+            android:theme="@style/Theme.RoomSathi">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
