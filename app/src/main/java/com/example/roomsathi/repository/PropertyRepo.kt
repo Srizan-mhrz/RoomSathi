@@ -32,4 +32,11 @@ interface PropertyRepo {
         locationQuery: String?,
         callback: (properties: List<Pair<String, PropertyModel>>) -> Unit
     )
+
+    fun updateImageAtSlot(
+        property: PropertyModel,
+        slotOffset: Int,
+        newUrl: String,
+        callback: (Boolean, String) -> Unit
+    )
 }

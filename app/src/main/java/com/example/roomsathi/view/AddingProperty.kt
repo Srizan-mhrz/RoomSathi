@@ -185,7 +185,7 @@ fun AddingPropertyScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
 
-                    enabled = selectedImageUris.isNotEmpty()
+                    enabled = selectedImageUris.isNotEmpty() && selectedImageUris.size <= 8
                 ) {
                     Text("Add Property")
                 }

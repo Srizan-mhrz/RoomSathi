@@ -13,7 +13,7 @@ class PropertyRepoImpl : PropertyRepo {
 
 
 
-    private val imageCounterRef = FirebaseDatabase.getInstance().getReference("ImageCounter")
+    private val counterRef = FirebaseDatabase.getInstance().getReference("ImageCounter")
 
 
         override fun getFilteredProperties(
@@ -63,78 +63,54 @@ class PropertyRepoImpl : PropertyRepo {
         callback: (isSuccess: Boolean, message: String, propertyId: String?) -> Unit
     ) {
 
-        imageCounterRef.runTransaction(object : Transaction.Handler {
+        counterRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
-
                 val currentCount = currentData.getValue(Long::class.java) ?: 0L
 
 
-                val startIndex = currentCount
-                val newCount = currentCount + imageUrls.size
-
-
-                currentData.value = newCount
-
-
-                currentData.child("context/startIndex").value = startIndex
-
+                currentData.value = currentCount + 8
                 return Transaction.success(currentData)
             }
-
 
             override fun onComplete(
                 error: DatabaseError?,
                 committed: Boolean,
-                dataSnapshot: DataSnapshot?
+                snapshot: DataSnapshot?
             ) {
-                if (error != null || !committed) {
-                    callback(false, "Failed to secure image index: ${error?.message}", null)
-                    return
-                }
+                if (committed && snapshot != null) {
+                    val startIndex = (snapshot.value as Long) - 8
 
 
+                    val updates = mutableMapOf<String, Any?>()
+                    for (i in 0..7) {
+                        val slotIndex = startIndex + i
 
-                val startIndex = dataSnapshot?.child("context/startIndex")?.getValue(Long::class.java)
-
-                if (startIndex == null) {
-                    callback(false, "Internal error: Could not retrieve start index.", null)
-                    return
-                }
-
-
-                val imageUpdates = mutableMapOf<String, Any>()
-                imageUrls.forEachIndexed { index, url ->
-                    val imageDbIndex = startIndex + index
-                    imageUpdates[imageDbIndex.toString()] = url
-                }
-
-                imagesRef.updateChildren(imageUpdates).addOnSuccessListener {
-
-                    val propertyId = propertiesRef.push().key
-                    if (propertyId == null) {
-                        callback(false, "Could not generate property ID.", null)
-                        return@addOnSuccessListener
+                        updates[slotIndex.toString()] = imageUrls.getOrNull(i)
                     }
 
-                    val finalProperty = property.copy(
-                        ownerId = userId,
-                        indexOfImages = startIndex,
-                        noOfImages = imageUrls.size
-                    )
 
-                    propertiesRef.child(propertyId).setValue(finalProperty)
-                        .addOnSuccessListener {
-                            callback(true, "Property added successfully.", propertyId)
-                        }
-                        .addOnFailureListener {
-                            callback(false, "Failed to save property data.", null)
-                        }
-                }.addOnFailureListener {
-                    callback(false, "Failed to save images.", null)
+                    imagesRef.updateChildren(updates).addOnSuccessListener {
+
+
+                        val propertyId = propertiesRef.push().key ?: ""
+                        val finalProperty = property.copy(
+                            propertyId = propertyId,
+                            ownerId = userId,
+                            indexOfImages = startIndex.toLong(),
+                            noOfImages = imageUrls.size
+                        )
+
+                        propertiesRef.child(propertyId).setValue(finalProperty)
+                            .addOnSuccessListener { callback(true, "Success", propertyId) }
+                    }
                 }
             }
         })
+
     }
+
+
+
 
     override fun deleteProperty(
         propertyId: String,
@@ -167,6 +143,28 @@ class PropertyRepoImpl : PropertyRepo {
                 callback(false, "Database error: ${error.message}", null)
             }
         })
+    }
+
+    override fun updateImageAtSlot(
+        property: PropertyModel,
+        slotOffset: Int,
+        newUrl: String,
+        callback: (Boolean, String) -> Unit
+    ) {
+        if (slotOffset in 0..7) {
+            // The "Pointer" math: Start + Offset
+            val targetBit = property.indexOfImages + slotOffset
+
+            imagesRef.child(targetBit.toString()).setValue(newUrl)
+                .addOnSuccessListener {
+                    callback(true, "Image updated in slot $slotOffset")
+                }
+                .addOnFailureListener {
+                    callback(false, "Failed to update image: ${it.message}")
+                }
+        } else {
+            callback(false, "Invalid slot: Must be 0 to 7")
+        }
     }
 
     override fun getAllProperties(callback: (properties: List<Pair<String, PropertyModel>>) -> Unit) {
