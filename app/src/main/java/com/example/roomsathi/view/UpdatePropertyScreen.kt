@@ -53,7 +53,7 @@ fun UpdatePropertyScreen(existingProperty: PropertyModel) {
             if (urls != null) imageList = urls
         }
     }
-    // Launcher for picking a replacement image
+
     var selectedSlot by remember { mutableIntStateOf(-1) }
     val imagePicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.updateImageSlot(existingProperty, selectedSlot, it) }
@@ -105,9 +105,10 @@ fun UpdatePropertyScreen(existingProperty: PropertyModel) {
                                     contentScale = ContentScale.Crop
                                 )
                             }
-                            Text("Slot $slotIndex", fontSize = 10.sp)
-                            // Here you would use Coil to show the existing image 
-                            // by calculating indexOfImages + slotIndex
+                            else {
+                                Text("Slot $slotIndex", fontSize = 10.sp, color = Color.Gray)
+
+                            }
                         }
                     }
                 }
@@ -116,10 +117,26 @@ fun UpdatePropertyScreen(existingProperty: PropertyModel) {
         }
 
         Button(
-            onClick = { /* Call viewModel.updatePropertyDetails */ },
+            onClick = {
+
+                val updatedProperty = existingProperty.copy(
+                    title = title,
+                    cost = cost.toDoubleOrNull() ?: existingProperty.cost,
+                    status = isRented
+
+                )
+
+
+                viewModel.updatePropertyDetails(
+                    propertyId = existingProperty.propertyId,
+                    updatedProperty = updatedProperty
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp)
+                .padding(top = 24.dp),
+
+            enabled = title.isNotBlank()
         ) {
             Text("Save All Changes")
         }

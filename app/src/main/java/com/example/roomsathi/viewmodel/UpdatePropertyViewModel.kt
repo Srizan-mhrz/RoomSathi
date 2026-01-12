@@ -23,7 +23,15 @@ class UpdatePropertyViewModel : ViewModel() {
 
 
 
-
+    fun fetchPropertyImages(
+        indexOfImages: Int,
+        noOfImages: Int,
+        onResult: (List<String>?) -> Unit
+    ) {
+        repository.getPropertyImages(indexOfImages, noOfImages) { urls ->
+            onResult(urls)
+        }
+    }
 
     fun updateImageSlot(property: PropertyModel, slotIndex: Int, newImageUri: Uri) {
         viewModelScope.launch {
