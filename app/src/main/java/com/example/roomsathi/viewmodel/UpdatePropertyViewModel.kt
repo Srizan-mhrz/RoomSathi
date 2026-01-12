@@ -22,12 +22,6 @@ class UpdatePropertyViewModel : ViewModel() {
     val uiState: StateFlow<AddPropertyUiState> = _uiState
 
 
-    fun updatePropertyDetails(propertyId: String, updatedProperty: PropertyModel) {
-        viewModelScope.launch {
-            _uiState.value = AddPropertyUiState.Loading
-
-        }
-    }
 
 
 
@@ -37,10 +31,21 @@ class UpdatePropertyViewModel : ViewModel() {
 
             val uploadResult = uploadSingleImage(newImageUri)
             if (uploadResult.isSuccess) {
-                repository.updateImageAtSlot(property, slotIndex, uploadResult.getOrNull()!!) { success, msg ->
-                    if (success) _uiState.value = AddPropertyUiState.Idle
-                    else _uiState.value = AddPropertyUiState.Error(msg)
+
+
+                repository.updateImageAtSlot(
+                    propertyId = property.propertyId,
+                    indexOfImages = property.indexOfImages.toInt(),
+                    slotOffset = slotIndex,
+                    newUrl = uploadResult.getOrNull()!!
+                ) { success, msg ->
+                    if (success) {
+                        _uiState.value = AddPropertyUiState.Idle
+                    } else {
+                        _uiState.value = AddPropertyUiState.Error(msg)
+                    }
                 }
+
             }
         }
     }
@@ -58,6 +63,20 @@ class UpdatePropertyViewModel : ViewModel() {
                 override fun onStart(requestId: String?) {}
                 override fun onProgress(requestId: String?, bytes: Long, totalBytes: Long) {}
                 override fun onReschedule(requestId: String?, error: ErrorInfo?) {}
+                // In UpdatePropertyViewModel.kt
+
+
+
             }).dispatch()
     }
+    fun updatePropertyDetails(propertyId: String, updatedProperty: PropertyModel) {
+        viewModelScope.launch {
+            _uiState.value = AddPropertyUiState.Loading
+            repository.updateProperty(propertyId, updatedProperty) { success, msg ->
+                if (success) _uiState.value = AddPropertyUiState.Success(msg, propertyId)
+                else _uiState.value = AddPropertyUiState.Error(msg)
+            }
+        }
+    }
+
 }

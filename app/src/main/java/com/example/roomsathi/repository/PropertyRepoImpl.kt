@@ -15,7 +15,20 @@ class PropertyRepoImpl : PropertyRepo {
 
     private val counterRef = FirebaseDatabase.getInstance().getReference("ImageCounter")
 
+    override fun updateProperty(
+        propertyId: String,
+        updatedProperty: PropertyModel,
+        callback: (Boolean, String) -> Unit
+    ) {
 
+        propertiesRef.child(propertyId).setValue(updatedProperty)
+            .addOnSuccessListener {
+                callback(true, "Property updated successfully")
+            }
+            .addOnFailureListener {
+                callback(false, it.message ?: "Failed to update property")
+            }
+    }
         override fun getFilteredProperties(
             maxCost: Double?,
             locationQuery: String?,
@@ -125,39 +138,47 @@ class PropertyRepoImpl : PropertyRepo {
                 callback(false, "Failed to delete property: ${it.message}")
             }
     }
-
-    override fun getPropertyById(
-        propertyId: String,
-        callback: (isSuccess: Boolean, message: String, property: PropertyModel?) -> Unit
+    override fun getPropertyImages(
+        indexOfImages: Int,
+        noOfImages: Int,
+        callback: (List<String>?) -> Unit
     ) {
-        propertiesRef.child(propertyId).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val property = snapshot.getValue(PropertyModel::class.java)
-                if (property != null) {
-                    callback(true, "Property fetched.", property)
-                } else {
-                    callback(false, "Property not found.", null)
+        if (noOfImages == 0 || indexOfImages < 0) {
+            callback(emptyList())
+            return
+        }
+
+        imagesRef.orderByKey()
+            .startAt(indexOfImages.toString())
+            .limitToFirst(noOfImages)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val urls = snapshot.children.mapNotNull { it.getValue(String::class.java) }
+                    callback(urls)
                 }
-            }
-            override fun onCancelled(error: DatabaseError) {
-                callback(false, "Database error: ${error.message}", null)
-            }
-        })
+                override fun onCancelled(error: DatabaseError) {
+                    callback(null)
+                }
+            })
     }
 
+
+
+
     override fun updateImageAtSlot(
-        property: PropertyModel,
+        propertyId: String,
+        indexOfImages: Int,
         slotOffset: Int,
         newUrl: String,
         callback: (Boolean, String) -> Unit
     ) {
         if (slotOffset in 0..7) {
-            // The "Pointer" math: Start + Offset
-            val targetBit = property.indexOfImages + slotOffset
+            // Target Bit = Pointer + Offset
+            val targetBit = indexOfImages + slotOffset
 
             imagesRef.child(targetBit.toString()).setValue(newUrl)
                 .addOnSuccessListener {
-                    callback(true, "Image updated in slot $slotOffset")
+                    callback(true, "Image updated in slot $slotOffset for property $propertyId")
                 }
                 .addOnFailureListener {
                     callback(false, "Failed to update image: ${it.message}")
@@ -165,6 +186,14 @@ class PropertyRepoImpl : PropertyRepo {
         } else {
             callback(false, "Invalid slot: Must be 0 to 7")
         }
+    }
+
+
+
+    override fun generatePropertyId(): String {
+            return FirebaseDatabase.getInstance().getReference("Properties").push().key ?: System.currentTimeMillis().toString()
+
+
     }
 
     override fun getAllProperties(callback: (properties: List<Pair<String, PropertyModel>>) -> Unit) {
@@ -185,28 +214,28 @@ class PropertyRepoImpl : PropertyRepo {
             }
         })
     }
-
-    override fun getPropertyImages(
-        property: PropertyModel,
-        callback: (imageUrls: List<String>?) -> Unit
+    override fun getPropertyById(
+        propertyId: String,
+        callback: (isSuccess: Boolean, message: String, property: PropertyModel?) -> Unit
     ) {
-        if (property.noOfImages == 0 || property.indexOfImages < 0) {
-            callback(emptyList()) // No images to fetch.
-            return
-        }
+        propertiesRef.child(propertyId).addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Fetch the property data and convert it to our PropertyModel
+                val property = snapshot.getValue(PropertyModel::class.java)
 
+                if (property != null) {
+                    callback(true, "Property fetched successfully.", property)
+                } else {
+                    callback(false, "Property not found.", null)
+                }
+            }
 
-        imagesRef.orderByKey()
-            .startAt(property.indexOfImages.toString())
-            .limitToFirst(property.noOfImages)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val urls = snapshot.children.mapNotNull { it.getValue(String::class.java) }
-                    callback(urls)
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    callback(null)
-                }
-            })
+            override fun onCancelled(error: DatabaseError) {
+                callback(false, "Database error: ${error.message}", null)
+            }
+        })
     }
+
+
+
 }
