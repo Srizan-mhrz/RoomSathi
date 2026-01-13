@@ -126,7 +126,13 @@ fun DashboardBody() {
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedIndex) {
                     0 -> HomeScreen(padding = innerPadding, viewModel = dashboardViewModel)
-                    1 -> MessageScreen()
+                    1 -> MessageBody { selectedUser ->
+                        val intent = android.content.Intent(context, InboxActivity::class.java).apply {
+                            putExtra("RECEIVER_ID", selectedUser.uid)
+                            putExtra("RECEIVER_NAME", selectedUser.name)
+                        }
+                        context.startActivity(intent)
+                    }
                     2 -> SavedScreen()
                     3 -> ProfileScreenBody()
                     4 -> AddingPropertyScreen(
