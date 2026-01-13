@@ -47,20 +47,20 @@ class DashboardActivity : ComponentActivity() {
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    containerColor: Color = Color.White.copy(alpha = 0.12f),
+    containerColor: Color = Color.White.copy(alpha = 0.45f),
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(20.dp)
     Box(
         modifier = modifier
             .clip(shape)
-            .border(1.dp, Color.White.copy(alpha = 0.2f), shape)
+            .border(1.dp, Color.White.copy(alpha = 0.3f), shape)
     ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .background(containerColor)
-                .blur(25.dp)
+                .blur(50.dp)
         )
         Box(modifier = Modifier.padding(16.dp)) {
             content()
@@ -135,29 +135,60 @@ fun DashboardContent(padding: PaddingValues) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(LightBlue) // Keeps content from showing behind the glass
-                    // 50.dp top padding ensures it doesn't touch the status bar when stuck
-                    .padding(top = 50.dp, bottom = 8.dp)
+                    .background(LightBlue)
+                    .padding(top = 54.dp, bottom = 8.dp)
             ) {
-                GlassSurface(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp)
                         .padding(horizontal = 16.dp),
-                    containerColor = Color.White.copy(alpha = 0.25f)
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(R.drawable.baseline_search_24),
-                            contentDescription = null,
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Text(
-                            text = "Search Place, Apartment, Room",
-                            color = Color.White.copy(alpha = 0.8f),
-                            fontSize = 14.sp
-                        )
+                    // 1. THE SEARCH BAR (Flexible width)
+                    GlassSurface(
+                        modifier = Modifier
+                            .weight(1f) // Takes up remaining space
+                            .height(56.dp),
+                        containerColor = Color.White.copy(alpha = 0.5f)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_search_24),
+                                contentDescription = null,
+                                tint = Color.White
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "Search Place...",
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    // 2. THE FILTER BUTTON (Square glass)
+                    GlassSurface(
+                        modifier = Modifier
+                            .size(56.dp) // Makes it a perfect square
+                            .clickable { /* TODO: Open Filter */ },
+                        containerColor = Yellow.copy(alpha = 0.8f) // Yellow glass makes it pop
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.baseline_filter_list_24), // Use your filter icon
+                                contentDescription = "Filter",
+                                tint = DarkBlue, // Dark contrast on yellow
+                                modifier = Modifier.size(26.dp)
+                            )
+                        }
                     }
                 }
             }
