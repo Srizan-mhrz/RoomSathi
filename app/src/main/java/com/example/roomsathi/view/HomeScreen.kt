@@ -129,6 +129,9 @@ fun PropertyCard(
 
 @Composable
 fun SearchAndFilterSection() {
+    // State to hold the search query
+    var searchQuery by remember { mutableStateOf("") }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,19 +142,48 @@ fun SearchAndFilterSection() {
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Search Bar Glass
+            // Functional Search Bar
             GlassSurface(
                 modifier = Modifier.weight(1f).height(56.dp),
                 containerColor = Color.White.copy(alpha = 0.5f)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(R.drawable.baseline_search_24), null, tint = Color.White)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 16.dp).fillMaxSize()
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_search_24),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
                     Spacer(Modifier.width(10.dp))
-                    Text("Search Place...", color = Color.White.copy(alpha = 0.9f))
+
+                    // BasicTextField allows for custom styling while enabling the keyboard
+                    androidx.compose.foundation.text.BasicTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = androidx.compose.ui.text.TextStyle(
+                            color = Color.White,
+                            fontSize = 16.sp
+                        ),
+                        singleLine = true,
+                        cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
+                        decorationBox = { innerTextField ->
+                            if (searchQuery.isEmpty()) {
+                                Text(
+                                    "Search Place...",
+                                    color = Color.White.copy(alpha = 0.7f),
+                                    fontSize = 16.sp
+                                )
+                            }
+                            innerTextField() // This is where the actual typing happens
+                        }
+                    )
                 }
             }
             Spacer(Modifier.width(10.dp))
-            // Filter Button Glass
+            // Filter Button
             GlassSurface(
                 modifier = Modifier.size(56.dp),
                 containerColor = Yellow.copy(alpha = 0.8f)
