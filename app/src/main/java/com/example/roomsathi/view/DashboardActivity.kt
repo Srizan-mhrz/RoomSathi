@@ -130,20 +130,21 @@ fun DashboardContent(padding: PaddingValues) {
             DashboardTopBar()
         }
 
-        // 2. Sticky Search Bar - stays at the top when scrolling
+        // 2. Sticky Search Bar - ADDED TOP PADDING FOR CLEAN UI
         stickyHeader {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(LightBlue) // Match background to prevent transparency issues
-                    .padding(vertical = 8.dp)
+                    .background(LightBlue) // Keeps content from showing behind the glass
+                    // 50.dp top padding ensures it doesn't touch the status bar when stuck
+                    .padding(top = 50.dp, bottom = 8.dp)
             ) {
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                         .padding(horizontal = 16.dp),
-                    containerColor = Color.White.copy(alpha = 0.25f) // Slightly darker for visibility
+                    containerColor = Color.White.copy(alpha = 0.25f)
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -164,14 +165,13 @@ fun DashboardContent(padding: PaddingValues) {
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
-        // Featured Title
+        // ... Rest of your items (Featured Title, LazyRow, etc.) stay the same
         item {
             SectionHeader(title = "Featured Properties", actionText = "See all")
         }
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
-        // Featured LazyRow
         item {
             LazyRow(
                 contentPadding = PaddingValues(horizontal = 16.dp),
@@ -184,7 +184,6 @@ fun DashboardContent(padding: PaddingValues) {
 
         item { Spacer(modifier = Modifier.height(24.dp)) }
 
-        // Categories
         item {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -198,7 +197,6 @@ fun DashboardContent(padding: PaddingValues) {
 
         item { Spacer(modifier = Modifier.height(24.dp)) }
 
-        // Regular Listings
         item {
             SectionHeader(title = "Available Near You", actionText = "")
         }
@@ -210,7 +208,6 @@ fun DashboardContent(padding: PaddingValues) {
         }
     }
 }
-
 @Composable
 fun DashboardTopBar() {
     // Increased top padding to account for the system status bar (Edge-to-Edge)
