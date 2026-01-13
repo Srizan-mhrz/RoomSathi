@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -46,6 +47,7 @@ class DashboardActivity : ComponentActivity() {
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
+    containerColor: Color = Color.White.copy(alpha = 0.12f),
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(20.dp)
@@ -57,7 +59,7 @@ fun GlassSurface(
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .background(Color.White.copy(alpha = 0.12f))
+                .background(containerColor)
                 .blur(25.dp)
         )
         Box(modifier = Modifier.padding(16.dp)) {
@@ -78,17 +80,14 @@ fun DashboardBody() {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            topBar = { DashboardTopBar() },
+            // TopBar is removed from here so it only appears in Dashboard Tab
             floatingActionButton = {
-                // The Center POST Button
                 FloatingActionButton(
                     onClick = { /* TODO: Open Post Property Screen */ },
                     shape = CircleShape,
                     containerColor = Yellow,
                     contentColor = DarkBlue,
-                    modifier = Modifier
-                        .size(64.dp)
-                        .offset(y = 55.dp) // Offset to sit within the bottom bar
+                    modifier = Modifier.size(64.dp).offset(y = 55.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.baseline_add_24),
@@ -105,96 +104,65 @@ fun DashboardBody() {
                 )
             }
         ) { padding ->
-            // Navigation Controller
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedIndex) {
                     0 -> DashboardContent(padding)
-                    1 -> MessageBody { selectedUser ->
-                        val intent = android.content.Intent(context, InboxActivity::class.java).apply {
-                            putExtra("RECEIVER_ID", selectedUser.uid)
-                            putExtra("RECEIVER_NAME", selectedUser.name)
-                        }
-                        context.startActivity(intent)
-                    }        // Link to your MessageBody
-                    2 -> SavedScreen()   // New Saved Screen
-                    3 -> ProfileScreen() // Profile
+                    1 -> MessageScreen()
+                    2 -> SavedScreen()
+                    3 -> ProfileScreen()
                 }
             }
         }
     }
 }
 
-@Composable
-fun DashboardTopBar() {
-    GlassSurface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 40.dp)
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Image(
-                painter = painterResource(R.drawable.parkbogum),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Hello! Park Bo Gum",
-                modifier = Modifier.weight(1f),
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Icon(
-                painter = painterResource(R.drawable.baseline_notifications_active_24),
-                contentDescription = null,
-                tint = Yellow,
-                modifier = Modifier.size(26.dp)
-            )
-        }
-    }
-}
+/* ---------------- Dashboard Tab (Home) ---------------- */
 
-/* ---------------- Main Dashboard Content ---------------- */
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DashboardContent(padding: PaddingValues) {
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(padding),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-
-        // Search Bar
+        // 1. Top Bar - inside LazyColumn so it scrolls away
         item {
-            GlassSurface(
+            DashboardTopBar()
+        }
+
+        // 2. Sticky Search Bar - stays at the top when scrolling
+        stickyHeader {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
-                    .padding(horizontal = 16.dp)
+                    .background(LightBlue) // Match background to prevent transparency issues
+                    .padding(vertical = 8.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_search_24),
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Search Place, Apartment, Room",
-                        color = Color.White.copy(alpha = 0.7f),
-                        fontSize = 14.sp
-                    )
+                GlassSurface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp)
+                        .padding(horizontal = 16.dp),
+                    containerColor = Color.White.copy(alpha = 0.25f) // Slightly darker for visibility
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.baseline_search_24),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Search Place, Apartment, Room",
+                            color = Color.White.copy(alpha = 0.8f),
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
         }
 
-        item { Spacer(modifier = Modifier.height(24.dp)) }
+        item { Spacer(modifier = Modifier.height(16.dp)) }
 
         // Featured Title
         item {
@@ -216,7 +184,7 @@ fun DashboardContent(padding: PaddingValues) {
 
         item { Spacer(modifier = Modifier.height(24.dp)) }
 
-        // Category Section
+        // Categories
         item {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -230,21 +198,51 @@ fun DashboardContent(padding: PaddingValues) {
 
         item { Spacer(modifier = Modifier.height(24.dp)) }
 
-        // Regular Listing Title
+        // Regular Listings
         item {
             SectionHeader(title = "Available Near You", actionText = "")
         }
 
-        // Mocking many items to show "Listing" scrolling
-        items(5) {
+        items(10) { index ->
             Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                FeatureCard(R.drawable.apartment, "Rs 18,000", "Standard Room $it")
+                FeatureCard(R.drawable.apartment, "Rs 18,000", "Available Room #$index")
             }
         }
     }
 }
 
-/* ---------------- Helper Composables ---------------- */
+@Composable
+fun DashboardTopBar() {
+    // Increased top padding to account for the system status bar (Edge-to-Edge)
+    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 60.dp, bottom = 10.dp)) {
+        GlassSurface(modifier = Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.parkbogum),
+                    contentDescription = null,
+                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = "Hello! Park Bo Gum",
+                    modifier = Modifier.weight(1f),
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Icon(
+                    painter = painterResource(R.drawable.baseline_notifications_active_24),
+                    contentDescription = null,
+                    tint = Yellow,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
+        }
+    }
+}
+
+/* ---------------- Reusable Helpers ---------------- */
 
 @Composable
 fun SectionHeader(title: String, actionText: String) {
@@ -292,30 +290,16 @@ fun CategoryItem(title: String, icon: Int) {
 /* ---------------- Bottom Navigation ---------------- */
 
 @Composable
-fun DashboardBottomBar(
-    selectedIndex: Int,
-    onItemSelected: (Int) -> Unit
-) {
+fun DashboardBottomBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     GlassSurface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(100.dp)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth().height(100.dp).padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Left Group
+        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
             Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
                 BottomNavItem("Home", R.drawable.baseline_home_24, selectedIndex == 0) { onItemSelected(0) }
                 BottomNavItem("Chat", R.drawable.baseline_message_24, selectedIndex == 1) { onItemSelected(1) }
             }
-
-            // Gap for FAB
             Spacer(modifier = Modifier.width(72.dp))
-
-            // Right Group
             Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
                 BottomNavItem("Saved", R.drawable.baseline_notifications_active_24, selectedIndex == 2) { onItemSelected(2) }
                 BottomNavItem("Profile", R.drawable.baseline_person_24, selectedIndex == 3) { onItemSelected(3) }
@@ -326,10 +310,7 @@ fun DashboardBottomBar(
 
 @Composable
 fun BottomNavItem(label: String, icon: Int, selected: Boolean, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { onClick() }
-    ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onClick() }) {
         Icon(
             painter = painterResource(icon),
             contentDescription = label,
@@ -340,25 +321,17 @@ fun BottomNavItem(label: String, icon: Int, selected: Boolean, onClick: () -> Un
     }
 }
 
-/* ---------------- Placeholder Screens ---------------- */
+/* ---------------- Screen Placeholders ---------------- */
 
-
-
+@Composable
+fun MessageScreen() = CenterText("Messages / Inbox")
 @Composable
 fun SavedScreen() = CenterText("Favorites & Saved Rooms")
-
 @Composable
 fun ProfileScreen() = CenterText("User Profile & My Ads")
-
 @Composable
 fun CenterText(text: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text, color = Color.White, fontSize = 20.sp)
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DashboardPreview() {
-    DashboardBody()
 }
