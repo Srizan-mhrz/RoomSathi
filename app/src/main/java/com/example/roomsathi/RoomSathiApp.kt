@@ -6,8 +6,8 @@ import com.cloudinary.android.MediaManager
 class RoomSathiApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        println("DEBUG_APP: RoomSathiApp has started and Cloudinary is initializing!")
 
-        // !! IMPORTANT: Replace with your actual Cloudinary credentials !!
         val config = mapOf(
             "cloud_name" to "dkayf2ohe",
             "api_key" to "714768571673822",

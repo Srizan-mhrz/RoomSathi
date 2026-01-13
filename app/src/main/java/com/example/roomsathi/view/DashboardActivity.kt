@@ -29,8 +29,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.roomsathi.ProfileScreenBody
 import com.example.roomsathi.R
+import com.example.roomsathi.repository.PropertyRepoImpl
 import com.example.roomsathi.ui.theme.*
+import com.example.roomsathi.viewmodel.DashboardViewModel
 
 class DashboardActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +53,7 @@ class DashboardActivity : ComponentActivity() {
 @Composable
 fun GlassSurface(
     modifier: Modifier = Modifier,
-    containerColor: Color = Color.White.copy(alpha = 0.45f),
+    containerColor: Color = Color.White.copy(alpha = 0.2f),
     content: @Composable () -> Unit
 ) {
     val shape = RoundedCornerShape(20.dp)
@@ -70,8 +76,21 @@ fun GlassSurface(
 
 @Composable
 fun DashboardBody() {
-    var selectedIndex by rememberSaveable { mutableStateOf(0) }
     val context = LocalContext.current
+
+    // 1. Initialize Repo and ViewModel with Factory
+    // Using @Suppress to hide that specific warning
+    val dashboardViewModel: DashboardViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                // Make sure PropertyRepoImpl matches your actual implementation class name
+                return DashboardViewModel(PropertyRepoImpl()) as T
+            }
+        }
+    )
+
+    var selectedIndex by rememberSaveable { mutableStateOf(0) }
 
     Box(
         modifier = Modifier
@@ -80,36 +99,42 @@ fun DashboardBody() {
     ) {
         Scaffold(
             containerColor = Color.Transparent,
-            // TopBar is removed from here so it only appears in Dashboard Tab
             floatingActionButton = {
-                FloatingActionButton(
-                    onClick = { /* TODO: Open Post Property Screen */ },
-                    shape = CircleShape,
-                    containerColor = Yellow,
-                    contentColor = DarkBlue,
-                    modifier = Modifier.size(64.dp).offset(y = 55.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_add_24),
-                        contentDescription = "Post",
-                        modifier = Modifier.size(32.dp)
-                    )
+                if (selectedIndex != 4) {
+                    FloatingActionButton(
+                        onClick = { selectedIndex = 4 },
+                        shape = CircleShape,
+                        containerColor = Yellow,
+                        contentColor = DarkBlue,
+                        modifier = Modifier.size(64.dp).offset(y = 55.dp)
+                    ) {
+                        Icon(painterResource(R.drawable.baseline_add_24), "Post")
+                    }
                 }
             },
             floatingActionButtonPosition = FabPosition.Center,
             bottomBar = {
-                DashboardBottomBar(
-                    selectedIndex = selectedIndex,
-                    onItemSelected = { selectedIndex = it }
-                )
+                if (selectedIndex != 4) {
+                    DashboardBottomBar(
+                        selectedIndex = selectedIndex,
+                        onItemSelected = { selectedIndex = it }
+                    )
+                }
             }
-        ) { padding ->
+        ) { innerPadding ->
+            // Use a Box to manage the screens based on selectedIndex
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedIndex) {
-                    0 -> DashboardContent(padding)
+                    0 -> HomeScreen(padding = innerPadding, viewModel = dashboardViewModel)
                     1 -> MessageScreen()
                     2 -> SavedScreen()
-                    3 -> ProfileScreen()
+                    3 -> ProfileScreenBody()
+                    4 -> AddingPropertyScreen(
+                        onAddSuccess = {
+                            selectedIndex = 0
+                            dashboardViewModel.fetchAllProperties() // Refresh data
+                        }
+                    )
                 }
             }
         }
@@ -329,7 +354,7 @@ fun DashboardBottomBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
             }
             Spacer(modifier = Modifier.width(72.dp))
             Row(modifier = Modifier.weight(1f), horizontalArrangement = Arrangement.SpaceAround) {
-                BottomNavItem("Saved", R.drawable.baseline_notifications_active_24, selectedIndex == 2) { onItemSelected(2) }
+                BottomNavItem("Saved", R.drawable.baseline_bookmark_24, selectedIndex == 2) { onItemSelected(2) }
                 BottomNavItem("Profile", R.drawable.baseline_person_24, selectedIndex == 3) { onItemSelected(3) }
             }
         }

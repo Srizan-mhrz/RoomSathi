@@ -185,7 +185,7 @@ fun Login() {
                 onClick = {  userViewModel.login(email, password) {success, msg->
                     if (success) {
                         val intent = Intent(
-                            context, ProfileScreen::class.java
+                            context, DashboardActivity::class.java
                         )
 
                         context.startActivity(intent)
