@@ -284,7 +284,7 @@ fun DashboardTopBar() {
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Hello! Park Bo Gum",
+                    text = "Hello! Name to be shown",
                     modifier = Modifier.weight(1f),
                     color = Color.White,
                     fontSize = 16.sp,
