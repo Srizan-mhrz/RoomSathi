@@ -14,6 +14,8 @@ class RoomSathiApp : Application() {
             "api_secret" to "DNwQ6QeZ-I7mf0foLORMeU0IVLo"
         )
         MediaManager.init(this, config)
+
     }
+
 }
     

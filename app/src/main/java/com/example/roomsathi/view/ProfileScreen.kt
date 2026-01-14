@@ -1,5 +1,6 @@
 package com.example.roomsathi
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,6 +14,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -20,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +33,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomsathi.ui.theme.*
+import com.example.roomsathi.view.EditProfileActivity
+import com.example.roomsathi.view.EditProfileScreen
 import com.example.roomsathi.view.GlassSurface
 
 @Composable
@@ -144,6 +152,8 @@ fun ProfileHeaderContent(
     profileHandle: String,
     profileImageRes: Int
 ) {
+    var showEdit by remember { mutableStateOf(false) }
+    val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -182,7 +192,8 @@ fun ProfileHeaderContent(
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = { },
+            onClick = { val intent = Intent(context, EditProfileActivity::class.java)
+                context.startActivity(intent) },
             colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {

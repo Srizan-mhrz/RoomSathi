@@ -1,5 +1,8 @@
 package com.example.roomsathi.view
 
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.foundation.Image
@@ -39,8 +42,18 @@ import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.viewmodel.UserViewModel
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+
+class EditProfileActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            EditProfileScreen(onBack = { finish() }) // finish() closes the Activity
+        }
+    }
+}
 @Composable
-fun EditProfileScreen() {
+fun EditProfileScreen(onBack: () -> Unit) {
+
     // State variables for each text field
     val userViewModel= remember { UserViewModel(UserRepoImpl()) }
     val user =userViewModel.users.observeAsState(initial=null)
@@ -53,7 +66,7 @@ fun EditProfileScreen() {
 
     Scaffold(
         topBar = {
-            EditProfileTopAppBar(onBackClicked = { /* Handle back action */ }, onSaveClicked = { /* Handle save action */ })
+            EditProfileTopAppBar(onBackClicked = { onBack() }, onSaveClicked = { /* Handle save action */ })
         }
     ) { paddingValues ->
         Column(
@@ -286,5 +299,5 @@ fun PhoneNumberField(
 @Preview(showBackground = true)
 @Composable
 fun EditProfileScreenPreview() {
-    EditProfileScreen()
+//    EditProfileScreen()
 }
