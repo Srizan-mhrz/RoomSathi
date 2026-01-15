@@ -26,6 +26,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,14 +79,24 @@ fun GlassSurface(
 fun DashboardBody() {
     val context = LocalContext.current
 
-    // 1. Initialize Repo and ViewModel with Factory
-    // Using @Suppress to hide that specific warning
+    // 1. Initialize DashboardViewModel
     val dashboardViewModel: DashboardViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                // Make sure PropertyRepoImpl matches your actual implementation class name
+                // Uses your PropertyRepoImpl
                 return DashboardViewModel(PropertyRepoImpl()) as T
+            }
+        }
+    )
+
+    // 2. Initialize UserViewModel using UserRepoImpl
+    val userViewModel: com.example.roomsathi.viewmodel.UserViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                // Use UserRepoImpl() here as it implements UserRepo
+                return com.example.roomsathi.viewmodel.UserViewModel(com.example.roomsathi.repository.UserRepoImpl()) as T
             }
         }
     )
@@ -122,10 +133,13 @@ fun DashboardBody() {
                 }
             }
         ) { innerPadding ->
-            // Use a Box to manage the screens based on selectedIndex
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedIndex) {
-                    0 -> HomeScreen(padding = innerPadding, viewModel = dashboardViewModel)
+                    0 -> HomeScreen(
+                        padding = innerPadding,
+                        dashboardViewModel = dashboardViewModel,
+                        userViewModel = userViewModel // Correctly passed now
+                    )
                     1 -> MessageBody { selectedUser ->
                         val intent = android.content.Intent(context, InboxActivity::class.java).apply {
                             putExtra("RECEIVER_ID", selectedUser.uid)
@@ -138,7 +152,7 @@ fun DashboardBody() {
                     4 -> AddingPropertyScreen(
                         onAddSuccess = {
                             selectedIndex = 0
-                            dashboardViewModel.fetchAllProperties() // Refresh data
+                            dashboardViewModel.fetchAllProperties()
                         }
                     )
                 }
@@ -158,7 +172,7 @@ fun DashboardContent(padding: PaddingValues) {
     ) {
         // 1. Top Bar - inside LazyColumn so it scrolls away
         item {
-            DashboardTopBar()
+//            DashboardTopBar()
         }
 
         // 2. Sticky Search Bar - ADDED TOP PADDING FOR CLEAN UI
@@ -271,25 +285,42 @@ fun DashboardContent(padding: PaddingValues) {
     }
 }
 @Composable
-fun DashboardTopBar() {
-    // Increased top padding to account for the system status bar (Edge-to-Edge)
+fun DashboardTopBar(userName: String) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 60.dp, bottom = 10.dp)) {
         GlassSurface(modifier = Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(12.dp)
+            ) {
+                // Profile Image
                 Image(
-                    painter = painterResource(R.drawable.parkbogum),
+                    painter = painterResource(R.drawable.parkbogum), // Replace with user profile if available
                     contentDescription = null,
-                    modifier = Modifier.size(48.dp).clip(CircleShape),
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
+
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = "Hello! Name to be shown",
-                    modifier = Modifier.weight(1f),
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
-                )
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Hello!",
+                        color = Color.White.copy(alpha = 0.6f),
+                        fontSize = 12.sp
+                    )
+                    Text(
+                        text = userName, // This is now dynamic!
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                // Notification Icon
                 Icon(
                     painter = painterResource(R.drawable.baseline_notifications_active_24),
                     contentDescription = null,
@@ -300,7 +331,6 @@ fun DashboardTopBar() {
         }
     }
 }
-
 /* ---------------- Reusable Helpers ---------------- */
 
 @Composable

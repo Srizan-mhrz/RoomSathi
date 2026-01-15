@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,32 +28,53 @@ import com.example.roomsathi.R
 import com.example.roomsathi.ui.theme.Yellow
 import com.example.roomsathi.ui.theme.LightBlue
 import com.example.roomsathi.viewmodel.DashboardViewModel
+import com.example.roomsathi.viewmodel.UserViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
     padding: PaddingValues,
-    viewModel: DashboardViewModel
+    dashboardViewModel: DashboardViewModel,
+    userViewModel: UserViewModel
 ) {
-    val properties by viewModel.properties.collectAsState()
-    val isLoading by viewModel.isLoading.collectAsState()
+    // 1. Observe Properties from DashboardViewModel (StateFlow)
+    val properties by dashboardViewModel.properties.collectAsState()
+    val isLoadingProperties by dashboardViewModel.isLoading.collectAsState()
 
-    // Featured: Top 5 items
+    // 2. Observe User Data from UserViewModel (LiveData)
+    val userModel by userViewModel.users.observeAsState()
+
+    // 3. Fetch user data once when the screen opens
+    LaunchedEffect(Unit) {
+        val currentFirebaseUser = userViewModel.getCurrentUser()
+        currentFirebaseUser?.uid?.let { uid ->
+            userViewModel.getUserById(uid)
+        }
+    }
+
+    // Determine display name
+    val displayName = userModel?.fullName ?: "Guest"
+
     val featuredProperties = properties.take(5)
-    // All items for the vertical list
     val regularProperties = properties
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
-        item { DashboardTopBar() }
+        // --- 1. Top Bar with Dynamic Name ---
+        item {
+            DashboardTopBar(userName = displayName)
+        }
 
-        stickyHeader { SearchAndFilterSection() }
+        // --- 2. Sticky Search ---
+        stickyHeader {
+            SearchAndFilterSection()
+        }
 
         item { Spacer(modifier = Modifier.height(20.dp)) }
 
-        // --- FEATURED SECTION (Carousel) ---
+        // --- 3. Featured Section ---
         if (featuredProperties.isNotEmpty()) {
             item {
                 SectionHeader(title = "Featured Properties", actionText = "See All")
@@ -73,13 +95,13 @@ fun HomeScreen(
             }
         }
 
-        // --- REGULAR LIST SECTION (Improved Layout) ---
+        // --- 4. Available Near You Section ---
         item {
             SectionHeader(title = "Available Near You", actionText = "")
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        if (isLoading) {
+        if (isLoadingProperties) {
             item {
                 Box(Modifier.fillMaxWidth().padding(50.dp), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = Yellow)
@@ -87,12 +109,13 @@ fun HomeScreen(
             }
         }
 
+        // --- 5. Compact List ---
         items(regularProperties) { property ->
             CompactPropertyCard(
                 title = property.title,
                 price = "Rs ${property.cost}",
                 location = property.location,
-                onClick = { /* Navigate to Detail */ }
+                onClick = { /* Navigate to detail */ }
             )
         }
     }
