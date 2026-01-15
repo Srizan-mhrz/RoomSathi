@@ -1,10 +1,10 @@
 package com.example.roomsathi
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,7 +12,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -20,14 +21,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.roomsathi.ui.theme.*
-import com.example.roomsathi.view.GlassSurface
+import com.example.roomsathi.view.EditProfileActivity
+import com.example.roomsathi.viewmodel.UserViewModel
 
 @Composable
 fun GlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
@@ -55,22 +59,28 @@ fun GlassSurface(modifier: Modifier = Modifier, content: @Composable () -> Unit)
     }
 }
 
-class ProfileScreen : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            ProfileScreenBody()
-        }
-    }
-}
-
+// Full body composable to be used in Dashboard or as a standalone activity
 @Composable
-fun ProfileScreenBody() {
+fun ProfileScreenBody(userViewModel: UserViewModel) {
+    val context = LocalContext.current
     val backgroundColor = LightBlue
 
-    Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
+    // Observe user data from ViewModel
+    val userModel by userViewModel.users.observeAsState()
 
+    // Extract dynamic values
+    val profileName = userModel?.fullName ?: "Loading..."
+    val profileEmail = userModel?.email ?: "user@example.com"
+    val profileImageUrl = userModel?.profileImageUrl ?: ""
+
+    // Fetch data if user state is empty
+    LaunchedEffect(Unit) {
+        userViewModel.getCurrentUser()?.uid?.let { uid ->
+            userViewModel.getUserById(uid)
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxSize().background(backgroundColor)) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent
@@ -80,18 +90,20 @@ fun ProfileScreenBody() {
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                // Header section with dynamic data
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 24.dp)
                 ) {
                     ProfileHeaderContent(
-                        profileName = "Billie Eilish",
-                        profileHandle = "@billieeillish123",
-                        profileImageRes = R.drawable.billieeilish
+                        profileName = profileName,
+                        profileHandle = profileEmail,
+                        profileImageUrl = profileImageUrl
                     )
                 }
 
+                // Menu items section
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -104,31 +116,38 @@ fun ProfileScreenBody() {
                         ProfileItem(
                             iconRes = R.drawable.outline_location_on_24,
                             label = "Location",
-                            onClick = { }
+                            onClick = { /* Handle Location */ }
                         )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
+                        HorizontalDivider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
                         ProfileItem(
                             iconRes = R.drawable.baseline_bookmark_24,
                             label = "Saved",
-                            onClick = { }
+                            onClick = { /* Navigate to Saved */ }
                         )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
+                        HorizontalDivider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
                         ProfileItem(
                             iconRes = R.drawable.baseline_history_24,
                             label = "History",
-                            onClick = { }
+                            onClick = { /* Navigate to History */ }
                         )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
+                        HorizontalDivider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
                         ProfileItem(
                             iconRes = R.drawable.baseline_settings_24,
                             label = "Privacy setting",
-                            onClick = { }
+                            onClick = { /* Navigate to Settings */ }
                         )
-                        Divider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
+                        HorizontalDivider(color = White.copy(alpha = 0.3f), thickness = 0.5.dp)
                         ProfileItem(
                             iconRes = R.drawable.baseline_logout_24,
                             label = "Log Out",
-                            onClick = { },
+                            onClick = {
+                                userViewModel.logOut { success, _ ->
+                                    if(success) {
+                                        // Logic to return to Login Screen
+                                        (context as? android.app.Activity)?.finish()
+                                    }
+                                }
+                            },
                             isLogout = true
                         )
                     }
@@ -142,19 +161,24 @@ fun ProfileScreenBody() {
 fun ProfileHeaderContent(
     profileName: String,
     profileHandle: String,
-    profileImageRes: Int
+    profileImageUrl: String
 ) {
+    val context = LocalContext.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(profileImageRes),
-            contentDescription = null,
+        // Dynamic Profile Image from Cloudinary
+        AsyncImage(
+            model = profileImageUrl,
+            contentDescription = "User Profile Picture",
             modifier = Modifier
                 .size(70.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
+                .clip(CircleShape)
+                .background(White.copy(alpha = 0.1f)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.baseline_person_24),
+            error = painterResource(R.drawable.baseline_person_24)
         )
 
         Spacer(modifier = Modifier.width(16.dp))
@@ -168,21 +192,28 @@ fun ProfileHeaderContent(
                     color = White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
-                profileHandle,
+                profileHandle, // Now showing email
                 style = TextStyle(
                     color = Color.LightGray.copy(alpha = 0.8f),
                     fontSize = 14.sp
-                )
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
         Spacer(modifier = Modifier.width(16.dp))
 
         Button(
-            onClick = { },
+            onClick = {
+                val intent = Intent(context, EditProfileActivity::class.java)
+                context.startActivity(intent)
+            },
             colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -230,10 +261,4 @@ fun ProfileItem(
             tint = White.copy(alpha = 0.8f)
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    ProfileScreen()
 }

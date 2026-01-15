@@ -1,6 +1,7 @@
 package com.example.roomsathi.repository
 
 
+import android.net.Uri
 import com.example.roomsathi.model.UserModel
 import com.google.firebase.auth.FirebaseUser
 
@@ -30,5 +31,6 @@ interface UserRepo {
     fun addUserToDatabase(
         userId: String, model: UserModel,callback: (Boolean, String) -> Unit
     )
+    fun uploadProfilePicture(imageUri: Uri, callback: (Boolean, String, String?) -> Unit)
 
 }

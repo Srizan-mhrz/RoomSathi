@@ -1,0 +1,16 @@
+package com.example.roomsathi.model
+
+data class PropertyModel(
+    val ownerId: String = "",
+    val propertyId: String = "",
+    val title: String = "",
+    val location: String = "",
+    val description: String = "",
+    val cost: Double = 0.0,
+    val status: Boolean = false,
+    val indexOfImages: Long = -1,
+    val noOfImages: Int = 0,
+    val renterId: String = "",
+    // ADD THIS LINE
+    val imageUrls: List<String> = emptyList()
+)

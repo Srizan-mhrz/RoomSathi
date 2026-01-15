@@ -1,14 +1,18 @@
 <resources>
     <string name="app_name">RoomSathi</string>
     <string name="title_activity_profile">ProfileActivity</string>
+    <string name="title_activity_message">MessageActivity</string>
+    <string name="title_activity_dashboard">DashboardActivity</string>
+    <string name="title_activity_inbox">InboxActivity</string>
+    <string name="title_activity_see_all">SeeAllActivity</string>
     <string name="title_activity_splash">SplashActivity</string>
     <string name="title_activity_registration">RegistrationActivity</string>
     <string name="title_activity_forget">ForgetPassword</string>
     <string name="title_activity_login">LoginUi</string>
-    <string name="title_activity_message">MessegeActivity</string>
-    <string name="title_activity_dashboard">DashboardActivity</string>
-    <string name="title_activity_inbox">InboxActivity</string>
-    <string name="title_activity_see_all">SeeAllActivity</string>
+<!--    <string name="title_activity_message">MessegeActivity</string>-->
+<!--    <string name="title_activity_dashboard">DashboardActivity</string>-->
+<!--    <string name="title_activity_inbox">InboxActivity</string>-->
+<!--    <string name="title_activity_see_all">SeeAllActivity</string>-->
     <string name="title_activity_homepage">HomepageActivity</string>
     <string name="title_activity_home_screen">HomeScreenActivity</string>
     <string name="title_activity_profile_screen">ProfileScreenActivity</string>

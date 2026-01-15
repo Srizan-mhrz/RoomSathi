@@ -1,27 +1,28 @@
 package com.example.roomsathi.viewmodel
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.roomsathi.model.FavoriteItem
-import com.example.roomsathi.model.FavoriteType
+import com.example.roomsathi.repository.FavoritesRepo
 
-class FavoritesViewModel : ViewModel() {
-    val favorites = mutableStateListOf(
-        FavoriteItem("1", "Budanilkantha Home", "Budanilkantha, KTM", "NPR10,000/mo", "", FavoriteType.ROOM),
-        FavoriteItem("2", "Alex Shah", "Budanilkantha, KTM", "Budget: NPR5,000", "", FavoriteType.ROOMMATE)
-    )
-    var selectedFilter = mutableStateOf("All")
+class FavoriteViewModel(private val repo: FavoritesRepo) : ViewModel() {
 
-    fun getFilteredFavorites(): List<FavoriteItem> {
-        return when (selectedFilter.value) {
-            "Rooms" -> favorites.filter { it.type == FavoriteType.ROOM }
-            "Roommates" -> favorites.filter { it.type == FavoriteType.ROOMMATE }
-            else -> favorites
+    private val _favoriteIds = MutableLiveData<List<String>>(emptyList())
+    val favoriteIds: LiveData<List<String>> get() = _favoriteIds
+
+    fun getFavorites(userId: String) {
+        repo.getFavoritePropertyIds(userId) { success, ids ->
+            if (success) {
+                _favoriteIds.postValue(ids)
+            }
         }
     }
 
-    fun removeItem(id: String) {
-        favorites.removeAll { it.id == id }
+    fun toggleFavorite(userId: String, propertyId: String, onResult: (String) -> Unit) {
+        repo.toggleFavorite(userId, propertyId) { success, message ->
+            if (success) {
+                onResult(message)
+            }
+        }
     }
 }

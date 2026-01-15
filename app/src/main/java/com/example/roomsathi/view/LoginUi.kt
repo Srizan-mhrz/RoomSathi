@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,7 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.example.roomsathi.ProfileScreen
+import com.example.roomsathi.ProfileScreenBody
 import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.viewmodel.UserViewModel
 
@@ -185,7 +186,7 @@ fun Login() {
                 onClick = {  userViewModel.login(email, password) {success, msg->
                     if (success) {
                         val intent = Intent(
-                            context, ProfileScreen::class.java
+                            context, DashboardActivity::class.java
                         )
 
                         context.startActivity(intent)
@@ -200,6 +201,32 @@ fun Login() {
                     .padding(horizontal = 12.dp, vertical = 20.dp)
             ) {
                 Text("Sign In")
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- NEW: SIGN UP SECTION ---
+            Row(
+                modifier = Modifier.padding(bottom = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Don't have an account? ",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "Sign Up",
+                    modifier = Modifier.clickable {
+
+                        val intent = Intent(context, RegistrationActivity::class.java)
+                        context.startActivity(intent)
+                    },
+                    style = TextStyle(
+                        color = Color.Black, // Or use your Yellow theme color
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp
+                    )
+                )
             }
         }
     }
