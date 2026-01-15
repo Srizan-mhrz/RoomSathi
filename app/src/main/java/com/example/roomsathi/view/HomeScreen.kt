@@ -3,8 +3,10 @@ package com.example.roomsathi.view
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,11 +20,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.roomsathi.R // Correct R import
+import com.example.roomsathi.R
 import com.example.roomsathi.ui.theme.Yellow
-import com.example.roomsathi.ui.theme.LightBlue // Assuming this is in your theme
+import com.example.roomsathi.ui.theme.LightBlue
 import com.example.roomsathi.viewmodel.DashboardViewModel
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -34,25 +37,46 @@ fun HomeScreen(
     val properties by viewModel.properties.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // Featured: Top 5 items
+    val featuredProperties = properties.take(5)
+    // All items for the vertical list
+    val regularProperties = properties
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
-        // 1. Dashboard Top Bar (Profile/Notif)
-        item {
-            DashboardTopBar()
+        item { DashboardTopBar() }
+
+        stickyHeader { SearchAndFilterSection() }
+
+        item { Spacer(modifier = Modifier.height(20.dp)) }
+
+        // --- FEATURED SECTION (Carousel) ---
+        if (featuredProperties.isNotEmpty()) {
+            item {
+                SectionHeader(title = "Featured Properties", actionText = "See All")
+                Spacer(modifier = Modifier.height(12.dp))
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    items(featuredProperties) { property ->
+                        FeaturedPropertyCard(
+                            title = property.title,
+                            price = "Rs ${property.cost}",
+                            location = property.location
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(28.dp))
+            }
         }
 
-        // 2. Sticky Search & Filter Bar
-        stickyHeader {
-            // Re-using the logic from DashboardActivity
-            SearchAndFilterSection()
-        }
-
-        item { Spacer(modifier = Modifier.height(16.dp)) }
-
+        // --- REGULAR LIST SECTION (Improved Layout) ---
         item {
             SectionHeader(title = "Available Near You", actionText = "")
+            Spacer(modifier = Modifier.height(8.dp))
         }
 
         if (isLoading) {
@@ -63,14 +87,89 @@ fun HomeScreen(
             }
         }
 
-        // DYNAMIC LIST from Repo
-        items(properties) { property ->
-            Box(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                PropertyCard(
-                    title = property.title,
-                    price = "Rs ${property.cost}",
-                    location = property.location,
-                    propertyId = property.propertyId
+        items(regularProperties) { property ->
+            CompactPropertyCard(
+                title = property.title,
+                price = "Rs ${property.cost}",
+                location = property.location,
+                onClick = { /* Navigate to Detail */ }
+            )
+        }
+    }
+}
+
+@Composable
+fun CompactPropertyCard(
+    title: String,
+    price: String,
+    location: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .clickable { onClick() },
+        color = Color.White.copy(alpha = 0.05f), // Very subtle background
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Left Side: Image
+            Image(
+                painter = painterResource(R.drawable.apartment),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(90.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // Right Side: Info
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.LocationOn,
+                        contentDescription = null,
+                        tint = Yellow,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = location,
+                        color = Color.LightGray,
+                        fontSize = 13.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = price,
+                    color = Yellow,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
         }
@@ -78,58 +177,41 @@ fun HomeScreen(
 }
 
 @Composable
-fun PropertyCard(
-    title: String,
-    price: String,
-    location: String,
-    propertyId: String
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Image(
-            painter = painterResource(R.drawable.apartment),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .clip(RoundedCornerShape(20.dp))
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = title,
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
+fun FeaturedPropertyCard(title: String, price: String, location: String) {
+    Column(modifier = Modifier.width(240.dp)) {
+        Box {
+            Image(
+                painter = painterResource(R.drawable.apartment),
                 contentDescription = null,
-                tint = Yellow,
-                modifier = Modifier.size(16.dp)
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .clip(RoundedCornerShape(20.dp))
             )
-            Text(
-                text = location,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 14.sp
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Text(
-                text = price,
-                color = Yellow,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
+            // Price Tag Overlay
+            Surface(
+                modifier = Modifier.padding(10.dp).align(Alignment.TopEnd),
+                color = Color.Black.copy(alpha = 0.6f),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = price,
+                    color = Yellow,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(text = title, color = Color.White, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(text = location, color = Color.Gray, fontSize = 12.sp, maxLines = 1)
     }
 }
 
 @Composable
 fun SearchAndFilterSection() {
-    // State to hold the search query
     var searchQuery by remember { mutableStateOf("") }
 
     Box(
@@ -142,10 +224,9 @@ fun SearchAndFilterSection() {
             modifier = Modifier.padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Functional Search Bar
             GlassSurface(
                 modifier = Modifier.weight(1f).height(56.dp),
-                containerColor = Color.White.copy(alpha = 0.5f)
+                containerColor = Color.White.copy(alpha = 0.15f) // Adjusted alpha for better look
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -158,7 +239,6 @@ fun SearchAndFilterSection() {
                     )
                     Spacer(Modifier.width(10.dp))
 
-                    // BasicTextField allows for custom styling while enabling the keyboard
                     androidx.compose.foundation.text.BasicTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
@@ -177,16 +257,15 @@ fun SearchAndFilterSection() {
                                     fontSize = 16.sp
                                 )
                             }
-                            innerTextField() // This is where the actual typing happens
+                            innerTextField()
                         }
                     )
                 }
             }
             Spacer(Modifier.width(10.dp))
-            // Filter Button
             GlassSurface(
                 modifier = Modifier.size(56.dp),
-                containerColor = Yellow.copy(alpha = 0.8f)
+                containerColor = Yellow.copy(alpha = 0.9f)
             ) {
                 Icon(painterResource(R.drawable.baseline_location_on_24), null, tint = Color.Black)
             }
