@@ -42,8 +42,16 @@ fun HomeScreen(
 ) {
     val properties by dashboardViewModel.properties.collectAsState()
     val isLoadingProperties by dashboardViewModel.isLoading.collectAsState()
+
+    // Observing user details from the ViewModel
     val userModel by userViewModel.users.observeAsState()
 
+    // Extracting dynamic data from the user model
+    val profileImageUrl = userModel?.profileImageUrl ?: ""
+    val displayName = userModel?.fullName ?: "Guest"
+    val featuredProperties = properties.take(5)
+
+    // Fetch user details when the screen loads
     LaunchedEffect(Unit) {
         val currentFirebaseUser = userViewModel.getCurrentUser()
         currentFirebaseUser?.uid?.let { uid ->
@@ -51,15 +59,13 @@ fun HomeScreen(
         }
     }
 
-    val displayName = userModel?.fullName ?: "Guest"
-    val featuredProperties = properties.take(5)
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
         item {
-            DashboardTopBar(userName = displayName)
+            // PASSING: Dynamic name and Cloudinary URL
+            DashboardTopBar(userName = displayName, profileImageUrl = profileImageUrl)
         }
 
         stickyHeader {
@@ -68,7 +74,7 @@ fun HomeScreen(
 
         item { Spacer(modifier = Modifier.height(20.dp)) }
 
-        // --- 3. Featured Section ---
+        // --- Featured Section ---
         if (featuredProperties.isNotEmpty()) {
             item {
                 SectionHeader(title = "Featured Properties", actionText = "See All")
@@ -82,7 +88,6 @@ fun HomeScreen(
                             title = property.title,
                             price = "Rs ${property.cost}",
                             location = property.location,
-                            // CHANGE: Pass the first image URL from the list
                             imageUrl = property.imageUrls.firstOrNull() ?: ""
                         )
                     }
@@ -104,13 +109,12 @@ fun HomeScreen(
             }
         }
 
-        // --- 5. Compact List ---
+        // --- Compact List ---
         items(properties) { property ->
             CompactPropertyCard(
                 title = property.title,
                 price = "Rs ${property.cost}",
                 location = property.location,
-                // CHANGE: Pass the first image URL from the list
                 imageUrl = property.imageUrls.firstOrNull() ?: "",
                 onClick = { onPropertyClick(property) }
             )

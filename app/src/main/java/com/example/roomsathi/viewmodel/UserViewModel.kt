@@ -1,5 +1,6 @@
 package com.example.roomsathi.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -82,5 +83,8 @@ class UserViewModel(val repo: UserRepo) : ViewModel() {
 
     fun addUserToDatabase(userId: String, model: UserModel, callback: (Boolean, String) -> Unit) {
         repo.addUserToDatabase(userId, model, callback)
+    }
+    fun uploadProfilePicture(imageUri: Uri, callback: (Boolean, String, String?) -> Unit) {
+        repo.uploadProfilePicture(imageUri, callback)
     }
 }

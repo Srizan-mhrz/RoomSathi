@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.roomsathi.ProfileScreenBody
 import com.example.roomsathi.R
 import com.example.roomsathi.model.PropertyModel
@@ -350,21 +351,25 @@ fun DashboardContent(padding: PaddingValues) {
     }
 }
 @Composable
-fun DashboardTopBar(userName: String) {
+fun DashboardTopBar(userName: String, profileImageUrl: String) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 60.dp, bottom = 10.dp)) {
         GlassSurface(modifier = Modifier.fillMaxWidth()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(12.dp)
             ) {
-                // Profile Image
-                Image(
-                    painter = painterResource(R.drawable.parkbogum), // Replace with user profile if available
-                    contentDescription = null,
+                // CHANGED: Using AsyncImage for Cloudinary URL
+                AsyncImage(
+                    model = profileImageUrl,
+                    contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(48.dp)
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop
+                        .clip(CircleShape)
+                        .background(Color.Gray.copy(alpha = 0.2f)), // Background while loading
+                    contentScale = ContentScale.Crop,
+                    // Use a person icon if the URL is empty or fails
+                    placeholder = painterResource(R.drawable.baseline_person_24),
+                    error = painterResource(R.drawable.baseline_person_24)
                 )
 
                 Spacer(modifier = Modifier.width(12.dp))
@@ -376,7 +381,7 @@ fun DashboardTopBar(userName: String) {
                         fontSize = 12.sp
                     )
                     Text(
-                        text = userName, // This is now dynamic!
+                        text = userName,
                         color = Color.White,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,

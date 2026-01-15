@@ -2,6 +2,7 @@ package com.example.roomsathi.repository
 
 
 
+import android.net.Uri
 import com.example.roomsathi.model.UserModel
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -10,13 +11,17 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.google.firebase.storage.FirebaseStorage
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 
 class UserRepoImpl : UserRepo{
 
     val auth : FirebaseAuth= FirebaseAuth.getInstance()
     val database : FirebaseDatabase = FirebaseDatabase.getInstance()
     val ref : DatabaseReference= database.getReference("users")
-
+    private val storage = FirebaseStorage.getInstance().reference
     override fun login(
         email: String,
         password: String,
@@ -60,6 +65,32 @@ class UserRepoImpl : UserRepo{
             }
 
         }
+    }
+    // Inside UserRepoImpl
+
+
+    // Inside UserRepoImpl
+    override fun uploadProfilePicture(imageUri: Uri, callback: (Boolean, String, String?) -> Unit) {
+        MediaManager.get().upload(imageUri)
+            .option("folder", "profile_pics")
+            .callback(object : UploadCallback {
+                override fun onStart(requestId: String) { }
+
+                override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) { }
+
+                override fun onSuccess(requestId: String, resultData: Map<*, *>) {
+                    val imageUrl = resultData["secure_url"] as? String
+                    callback(true, "Upload Success", imageUrl)
+                }
+
+                override fun onError(requestId: String, error: ErrorInfo) {
+                    callback(false, error.description, null)
+                }
+
+                override fun onReschedule(requestId: String, error: ErrorInfo) {
+                    callback(false, "Rescheduled", null)
+                }
+            }).dispatch()
     }
 
     override fun getCurrentUser(): FirebaseUser? {
