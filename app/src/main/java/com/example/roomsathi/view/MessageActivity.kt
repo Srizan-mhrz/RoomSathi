@@ -49,31 +49,40 @@ class MessageActivity : ComponentActivity() {
 
 @Composable
 fun MessageBody(onChatClick: (UserItemData) -> Unit) {
-    // 1. State for holding real users from Firebase
     val userList = remember { mutableStateListOf<UserItemData>() }
     val currentUser = FirebaseAuth.getInstance().currentUser
+    val database = FirebaseDatabase.getInstance().reference
 
-    // 2. Fetch users from Firebase Realtime Database
-    LaunchedEffect(Unit) {
-        val database = FirebaseDatabase.getInstance().getReference("users")
-        database.addValueEventListener(object : ValueEventListener {
+    // 1. Fetch only CHATTED users
+    LaunchedEffect(currentUser?.uid) {
+        if (currentUser == null) return@LaunchedEffect
+
+        val myChatsRef = database.child("user_chats").child(currentUser.uid)
+
+        myChatsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 userList.clear()
-                for (data in snapshot.children) {
-                    val userId = data.child("userId").value.toString()
-                    val userName = data.child("fullName").value.toString()
+                // Get all User IDs I have a history with
+                val chatPartnerIds = snapshot.children.mapNotNull { it.key }
 
-                    // Only add the user if it's NOT the person currently logged in
-                    if (userId != currentUser?.uid) {
-                        userList.add(
-                            UserItemData(
-                                uid = userId,
-                                name = userName,
-                                preview = "Click to chat...",
-                                imageRes = R.drawable.parkbogum // Dummy image for everyone
-                            )
-                        )
-                    }
+                chatPartnerIds.forEach { partnerId ->
+                    // Fetch details for each specific partner
+                    database.child("users").child(partnerId)
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(userSnapshot: DataSnapshot) {
+                                val userName = userSnapshot.child("fullName").value.toString()
+
+                                userList.add(
+                                    UserItemData(
+                                        uid = partnerId,
+                                        name = userName,
+                                        preview = "Tap to view messages",
+                                        imageRes = R.drawable.parkbogum
+                                    )
+                                )
+                            }
+                            override fun onCancelled(error: DatabaseError) {}
+                        })
                 }
             }
             override fun onCancelled(error: DatabaseError) {}
@@ -94,41 +103,22 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
                     .padding(vertical = 16.dp, horizontal = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.baseline_arrow_back_ios_24),
-                    contentDescription = null,
-                    modifier = Modifier.size(25.dp).clickable { /* Handle back */ },
-                    tint = White
-                )
-                Spacer(Modifier.width(8.dp))
                 Text("Messages", color = White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
 
-            // Search bar (Visual only)
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(45.dp)
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF5EFE8))
-            ) {
-                Row(modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Icon(painterResource(R.drawable.baseline_search_24), null, tint = DarkBlue)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Search", color = Color.Gray, fontSize = 15.sp)
+            // Real-time filtered user list
+            if (userList.isEmpty()) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No conversations yet", color = White.copy(alpha = 0.5f))
                 }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Real-time user list
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(userList) { user ->
-                    MessageRow(user) { onChatClick(user) }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(userList) { user ->
+                        MessageRow(user) { onChatClick(user) }
+                    }
                 }
             }
         }
