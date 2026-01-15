@@ -72,32 +72,26 @@ class PropertyRepoImpl : PropertyRepo {
                 return Transaction.success(currentData)
             }
 
-            override fun onComplete(
-                error: DatabaseError?,
-                committed: Boolean,
-                snapshot: DataSnapshot?
-            ) {
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
                 if (committed && snapshot != null) {
                     val startIndex = (snapshot.value as Long) - 8
-
-
                     val updates = mutableMapOf<String, Any?>()
+
                     for (i in 0..7) {
                         val slotIndex = startIndex + i
-
                         updates[slotIndex.toString()] = imageUrls.getOrNull(i)
                     }
 
-
                     imagesRef.updateChildren(updates).addOnSuccessListener {
-
-
                         val propertyId = propertiesRef.push().key ?: ""
+
+                        // FIX: Ensure the imageUrls list is included in finalProperty
                         val finalProperty = property.copy(
                             propertyId = propertyId,
                             ownerId = userId,
                             indexOfImages = startIndex.toLong(),
-                            noOfImages = imageUrls.size
+                            noOfImages = imageUrls.size,
+                            imageUrls = imageUrls // ADD THIS LINE HERE
                         )
 
                         propertiesRef.child(propertyId).setValue(finalProperty)

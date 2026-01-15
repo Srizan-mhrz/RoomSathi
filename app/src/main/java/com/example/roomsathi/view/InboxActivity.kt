@@ -103,7 +103,15 @@ fun InboxBody(senderId: String, receiverId: String, receiverName: String) {
                 onSendClick = {
                     if (messageText.isNotBlank()) {
                         val msg = ChatMessage(messageText, senderId, System.currentTimeMillis())
+
+                        // 1. Save the actual message
                         database.child("chats").child(chatRoomId).child("messages").push().setValue(msg)
+
+                        // 2. Register the chat for BOTH users so it appears in their MessageBody
+                        // This tells the app: "User A and User B now have a history"
+                        database.child("user_chats").child(senderId).child(receiverId).setValue(true)
+                        database.child("user_chats").child(receiverId).child(senderId).setValue(true)
+
                         messageText = ""
                     }
                 }

@@ -44,9 +44,15 @@ class AddingPropertyViewModel : ViewModel() {
         viewModelScope.launch {
             _uiState.value = AddPropertyUiState.Loading
 
+            // 1. Grab the ID
             val currentUserId = auth.currentUser?.uid
+
+            // 2. LOG THIS to your Logcat so you can see if it's null!
+            println("DEBUG_LOG: Current User ID is $currentUserId")
+
             if (currentUserId == null) {
-                _uiState.value = AddPropertyUiState.Error("You must be logged in to add a property.")
+                // IMPORTANT: This stops the progress bar by changing the state to Error
+                _uiState.value = AddPropertyUiState.Error("Session expired. Please log in again.")
                 return@launch
             }
 
@@ -68,7 +74,9 @@ class AddingPropertyViewModel : ViewModel() {
                     description = description,
                     cost = cost,
                     status = false,
-                    renterId = ""
+                    renterId = "",
+                    imageUrls = downloadedUrls,
+                    noOfImages = downloadedUrls.size
                 )
 
                 repository.addProperty(currentUserId, property, downloadedUrls) { isSuccess, message, propertyId ->
