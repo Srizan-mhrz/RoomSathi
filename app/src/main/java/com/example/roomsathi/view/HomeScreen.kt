@@ -40,18 +40,19 @@ fun HomeScreen(
     userViewModel: UserViewModel,
     onPropertyClick: (PropertyModel) -> Unit
 ) {
-    val properties by dashboardViewModel.properties.collectAsState()
+    // CHANGED: Observe the filtered list and the search query from ViewModel
+    val properties by dashboardViewModel.filteredProperties.collectAsState()
+    val searchQuery by dashboardViewModel.searchQuery.collectAsState()
     val isLoadingProperties by dashboardViewModel.isLoading.collectAsState()
 
-    // Observing user details from the ViewModel
     val userModel by userViewModel.users.observeAsState()
 
-    // Extracting dynamic data from the user model
     val profileImageUrl = userModel?.profileImageUrl ?: ""
     val displayName = userModel?.fullName ?: "Guest"
+
+    // Use the filtered properties for the featured section as well
     val featuredProperties = properties.take(5)
 
-    // Fetch user details when the screen loads
     LaunchedEffect(Unit) {
         val currentFirebaseUser = userViewModel.getCurrentUser()
         currentFirebaseUser?.uid?.let { uid ->
@@ -64,18 +65,22 @@ fun HomeScreen(
         contentPadding = PaddingValues(bottom = 120.dp)
     ) {
         item {
-            // PASSING: Dynamic name and Cloudinary URL
             DashboardTopBar(userName = displayName, profileImageUrl = profileImageUrl)
         }
 
         stickyHeader {
-            SearchAndFilterSection()
+            // CHANGED: Pass ViewModel state and update function
+            SearchAndFilterSection(
+                query = searchQuery,
+                onQueryChange = { dashboardViewModel.updateSearchQuery(it) }
+            )
         }
 
         item { Spacer(modifier = Modifier.height(20.dp)) }
 
-        // --- Featured Section ---
-        if (featuredProperties.isNotEmpty()) {
+        // Featured Section
+        if (featuredProperties.isNotEmpty() && searchQuery.isEmpty()) {
+            // Only show featured if not searching
             item {
                 SectionHeader(title = "Featured Properties", actionText = "See All")
                 Spacer(modifier = Modifier.height(12.dp))
@@ -97,7 +102,8 @@ fun HomeScreen(
         }
 
         item {
-            SectionHeader(title = "Available Near You", actionText = "")
+            val title = if (searchQuery.isEmpty()) "Available Near You" else "Search Results"
+            SectionHeader(title = title, actionText = "")
             Spacer(modifier = Modifier.height(8.dp))
         }
 
@@ -109,7 +115,17 @@ fun HomeScreen(
             }
         }
 
-        // --- Compact List ---
+        // Show empty state if no properties match search
+        if (properties.isEmpty() && !isLoadingProperties) {
+            item {
+                Text(
+                    "No properties found matching \"$searchQuery\"",
+                    color = Color.Gray,
+                    modifier = Modifier.padding(20.dp)
+                )
+            }
+        }
+
         items(properties) { property ->
             CompactPropertyCard(
                 title = property.title,
@@ -199,8 +215,10 @@ fun FeaturedPropertyCard(title: String, price: String, location: String, imageUr
 }
 
 @Composable
-fun SearchAndFilterSection() {
-    var searchQuery by remember { mutableStateOf("") }
+fun SearchAndFilterSection(
+    query: String,        // Passed from HomeScreen
+    onQueryChange: (String) -> Unit // Passed from HomeScreen
+) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -219,18 +237,22 @@ fun SearchAndFilterSection() {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp).fillMaxSize()
                 ) {
-                    Icon(painter = painterResource(R.drawable.baseline_search_24), contentDescription = null, tint = Color.White)
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_search_24),
+                        contentDescription = null,
+                        tint = Color.White
+                    )
                     Spacer(Modifier.width(10.dp))
                     androidx.compose.foundation.text.BasicTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
+                        value = query,
+                        onValueChange = onQueryChange, // Triggers ViewModel logic
                         modifier = Modifier.fillMaxWidth(),
                         textStyle = androidx.compose.ui.text.TextStyle(color = Color.White, fontSize = 16.sp),
                         singleLine = true,
                         cursorBrush = androidx.compose.ui.graphics.SolidColor(Color.White),
                         decorationBox = { innerTextField ->
-                            if (searchQuery.isEmpty()) {
-                                Text("Search Place...", color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
+                            if (query.isEmpty()) {
+                                Text("Search Place or Title...", color = Color.White.copy(alpha = 0.7f), fontSize = 16.sp)
                             }
                             innerTextField()
                         }
