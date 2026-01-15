@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.roomsathi.R
+import com.example.roomsathi.model.PropertyModel
 import com.example.roomsathi.ui.theme.Yellow
 import com.example.roomsathi.ui.theme.LightBlue
 import com.example.roomsathi.viewmodel.DashboardViewModel
@@ -35,7 +36,8 @@ import com.example.roomsathi.viewmodel.UserViewModel
 fun HomeScreen(
     padding: PaddingValues,
     dashboardViewModel: DashboardViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    onPropertyClick: (PropertyModel) -> Unit
 ) {
     // 1. Observe Properties from DashboardViewModel (StateFlow)
     val properties by dashboardViewModel.properties.collectAsState()
@@ -115,7 +117,7 @@ fun HomeScreen(
                 title = property.title,
                 price = "Rs ${property.cost}",
                 location = property.location,
-                onClick = { /* Navigate to detail */ }
+                onClick = { onPropertyClick(property) } // Pass the whole model
             )
         }
     }

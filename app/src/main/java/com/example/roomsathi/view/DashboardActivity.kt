@@ -35,6 +35,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roomsathi.ProfileScreenBody
 import com.example.roomsathi.R
+import com.example.roomsathi.model.PropertyModel
 import com.example.roomsathi.repository.PropertyRepoImpl
 import com.example.roomsathi.ui.theme.*
 import com.example.roomsathi.viewmodel.DashboardViewModel
@@ -79,82 +80,96 @@ fun GlassSurface(
 fun DashboardBody() {
     val context = LocalContext.current
 
-    // 1. Initialize DashboardViewModel
+    // ViewModels initialization
     val dashboardViewModel: DashboardViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                // Uses your PropertyRepoImpl
                 return DashboardViewModel(PropertyRepoImpl()) as T
             }
         }
     )
 
-    // 2. Initialize UserViewModel using UserRepoImpl
     val userViewModel: com.example.roomsathi.viewmodel.UserViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                // Use UserRepoImpl() here as it implements UserRepo
                 return com.example.roomsathi.viewmodel.UserViewModel(com.example.roomsathi.repository.UserRepoImpl()) as T
             }
         }
     )
 
+    // --- 1. DEFINE THE MISSING STATE HERE ---
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
+    var selectedProperty by remember { mutableStateOf<PropertyModel?>(null) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(LightBlue)
     ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            floatingActionButton = {
-                if (selectedIndex != 4) {
-                    FloatingActionButton(
-                        onClick = { selectedIndex = 4 },
-                        shape = CircleShape,
-                        containerColor = Yellow,
-                        contentColor = DarkBlue,
-                        modifier = Modifier.size(64.dp).offset(y = 55.dp)
-                    ) {
-                        Icon(painterResource(R.drawable.baseline_add_24), "Post")
-                    }
+        // --- 2. LOGIC TO SHOW DETAIL SCREEN OVER EVERYTHING ---
+        if (selectedProperty != null) {
+            PropertyDetailsScreen(
+                property = selectedProperty!!,
+                onBack = { selectedProperty = null },
+                onMessageClick = { ownerId ->
+                    // Logic to open chat with owner
                 }
-            },
-            floatingActionButtonPosition = FabPosition.Center,
-            bottomBar = {
-                if (selectedIndex != 4) {
-                    DashboardBottomBar(
-                        selectedIndex = selectedIndex,
-                        onItemSelected = { selectedIndex = it }
-                    )
-                }
-            }
-        ) { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (selectedIndex) {
-                    0 -> HomeScreen(
-                        padding = innerPadding,
-                        dashboardViewModel = dashboardViewModel,
-                        userViewModel = userViewModel // Correctly passed now
-                    )
-                    1 -> MessageBody { selectedUser ->
-                        val intent = android.content.Intent(context, InboxActivity::class.java).apply {
-                            putExtra("RECEIVER_ID", selectedUser.uid)
-                            putExtra("RECEIVER_NAME", selectedUser.name)
-                        }
-                        context.startActivity(intent)
+            )
+        } else {
+            // Show the main Dashboard if no property is selected
+            Scaffold(
+                containerColor = Color.Transparent,
+                bottomBar = {
+                    if (selectedIndex != 4) {
+                        DashboardBottomBar(
+                            selectedIndex = selectedIndex,
+                            onItemSelected = { selectedIndex = it }
+                        )
                     }
-                    2 -> SavedScreen()
-                    3 -> ProfileScreenBody()
-                    4 -> AddingPropertyScreen(
-                        onAddSuccess = {
-                            selectedIndex = 0
-                            dashboardViewModel.fetchAllProperties()
+                },
+                floatingActionButton = {
+                    if (selectedIndex != 4) {
+                        FloatingActionButton(
+                            onClick = { selectedIndex = 4 },
+                            shape = CircleShape,
+                            containerColor = Yellow,
+                            contentColor = DarkBlue,
+                            modifier = Modifier.size(64.dp).offset(y = 55.dp)
+                        ) {
+                            Icon(painterResource(R.drawable.baseline_add_24), "Post")
                         }
-                    )
+                    }
+                },
+                floatingActionButtonPosition = FabPosition.Center,
+            ) { innerPadding ->
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (selectedIndex) {
+                        0 -> HomeScreen(
+                            padding = innerPadding,
+                            dashboardViewModel = dashboardViewModel,
+                            userViewModel = userViewModel,
+                            onPropertyClick = { clickedProperty ->
+                                selectedProperty = clickedProperty
+                            }
+                        )
+                        1 -> MessageBody { selectedUser ->
+                            val intent = android.content.Intent(context, InboxActivity::class.java).apply {
+                                putExtra("RECEIVER_ID", selectedUser.uid)
+                                putExtra("RECEIVER_NAME", selectedUser.name)
+                            }
+                            context.startActivity(intent)
+                        }
+                        2 -> SavedScreen()
+                        3 -> ProfileScreenBody()
+                        4 -> AddingPropertyScreen(
+                            onAddSuccess = {
+                                selectedIndex = 0
+                                dashboardViewModel.fetchAllProperties()
+                            }
+                        )
+                    }
                 }
             }
         }
