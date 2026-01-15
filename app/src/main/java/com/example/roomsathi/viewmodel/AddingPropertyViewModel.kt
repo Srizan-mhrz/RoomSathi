@@ -74,7 +74,9 @@ class AddingPropertyViewModel : ViewModel() {
                     description = description,
                     cost = cost,
                     status = false,
-                    renterId = ""
+                    renterId = "",
+                    imageUrls = downloadedUrls,
+                    noOfImages = downloadedUrls.size
                 )
 
                 repository.addProperty(currentUserId, property, downloadedUrls) { isSuccess, message, propertyId ->

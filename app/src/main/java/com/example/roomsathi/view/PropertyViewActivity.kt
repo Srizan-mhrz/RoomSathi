@@ -90,14 +90,14 @@ fun PropertyDetailsScreen(
         ) {
             // 1. Image Swiper Section
             Box(modifier = Modifier.fillMaxWidth().height(350.dp)) {
+                // Inside PropertyDetailsScreen.kt
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
                     if (images.isNotEmpty()) {
-                        // REAL CLOUDINARY IMAGES
                         AsyncImage(
-                            model = images[page],
+                            model = images[page], // This is the Cloudinary URL
                             contentDescription = "Property Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
@@ -105,10 +105,9 @@ fun PropertyDetailsScreen(
                             error = painterResource(R.drawable.apartment)
                         )
                     } else {
-                        // FALLBACK IF NO IMAGES
                         Image(
                             painter = painterResource(R.drawable.apartment),
-                            contentDescription = null,
+                            contentDescription = "Placeholder",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize()
                         )
