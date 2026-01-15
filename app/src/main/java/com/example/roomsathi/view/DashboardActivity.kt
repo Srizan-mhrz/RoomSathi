@@ -140,10 +140,11 @@ fun DashboardBody() {
             }
 
             val ownerName = propertyOwnerState?.fullName ?: "Loading..."
-
+            val ownerImageUrl = propertyOwnerState?.profileImageUrl ?: ""
             PropertyDetailsScreen(
                 property = selectedProperty!!,
                 ownerName = ownerName,
+                ownerImageUrl = ownerImageUrl,
                 // --- ADDED: Pass Favorite state and toggle logic ---
                 isFavoriteInitially = favoriteIds.contains(selectedProperty!!.propertyId),
                 onFavoriteToggle = { propId ->
@@ -158,6 +159,7 @@ fun DashboardBody() {
                     val intent = android.content.Intent(context, InboxActivity::class.java).apply {
                         putExtra("RECEIVER_ID", ownerId)
                         putExtra("RECEIVER_NAME", ownerName)
+                        putExtra("RECEIVER_IMAGE", ownerImageUrl)
                     }
                     context.startActivity(intent)
                 }
@@ -213,7 +215,7 @@ fun DashboardBody() {
                                 selectedProperty = clickedProperty
                             }
                         )
-                        3 -> ProfileScreenBody()
+                        3 -> ProfileScreenBody(userViewModel = userViewModel)
                         4 -> AddingPropertyScreen(
                             onAddSuccess = {
                                 selectedIndex = 0

@@ -47,7 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-import com.example.roomsathi.ProfileScreen
+import com.example.roomsathi.ProfileScreenBody
 import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.viewmodel.UserViewModel
 

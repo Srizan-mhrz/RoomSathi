@@ -39,11 +39,11 @@ import com.example.roomsathi.ui.theme.LightBlue
 fun PropertyDetailsScreen(
     property: PropertyModel,
     ownerName: String,
-    isFavoriteInitially: Boolean, // Added parameter
-    onFavoriteToggle: (String) -> Unit, // Added parameter
+    ownerImageUrl: String, // Added this parameter
+    isFavoriteInitially: Boolean,
+    onFavoriteToggle: (String) -> Unit,
     onBack: () -> Unit,
-    onMessageClick: (String) -> Unit
-) {
+    onMessageClick: (String) -> Unit){
     val context = LocalContext.current
 
     // Use the database value but allow local toggling for instant UI feedback
@@ -197,6 +197,7 @@ fun PropertyDetailsScreen(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // 3. Owner Profile Section
+// 3. Owner Profile Section
                 Text("Posted By", color = Color.White.copy(alpha = 0.6f), fontSize = 14.sp)
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
@@ -206,15 +207,22 @@ fun PropertyDetailsScreen(
                         .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
                         .padding(12.dp)
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.parkbogum),
-                        contentDescription = null,
+                    // CHANGED: Using AsyncImage for the Owner's Profile Picture
+                    AsyncImage(
+                        model = ownerImageUrl,
+                        contentDescription = "Owner Profile Picture",
                         modifier = Modifier
                             .size(50.dp)
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Crop
+                            .clip(CircleShape)
+                            .background(Color.Gray.copy(alpha = 0.2f)), // Background while loading
+                        contentScale = ContentScale.Crop,
+                        // Fallback to a local person icon if the URL is empty or fails
+                        placeholder = painterResource(R.drawable.baseline_person_24),
+                        error = painterResource(R.drawable.baseline_person_24)
                     )
+
                     Spacer(modifier = Modifier.width(12.dp))
+
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
                             text = ownerName,
