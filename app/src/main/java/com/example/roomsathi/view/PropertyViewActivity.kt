@@ -1,5 +1,6 @@
 package com.example.roomsathi.view
 
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,12 +14,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -36,11 +38,18 @@ import com.example.roomsathi.ui.theme.LightBlue
 @Composable
 fun PropertyDetailsScreen(
     property: PropertyModel,
-    ownerName: String, // Add this parameter
+    ownerName: String,
+    isFavoriteInitially: Boolean, // Added parameter
+    onFavoriteToggle: (String) -> Unit, // Added parameter
     onBack: () -> Unit,
-    onMessageClick: (String) -> Unit// Pass ownerId
+    onMessageClick: (String) -> Unit
 ) {
-    // Ensure we handle the list from your model
+    val context = LocalContext.current
+
+    // Use the database value but allow local toggling for instant UI feedback
+    // remember(property.propertyId) ensures state resets correctly if you switch properties
+    var isFavorite by remember(property.propertyId) { mutableStateOf(isFavoriteInitially) }
+
     val images = property.imageUrls
     val pagerState = rememberPagerState(
         pageCount = { if (images.isEmpty()) 1 else images.size }
@@ -49,7 +58,6 @@ fun PropertyDetailsScreen(
     Scaffold(
         containerColor = LightBlue,
         bottomBar = {
-            // Price and Action Row at the very bottom
             Surface(
                 color = LightBlue,
                 tonalElevation = 8.dp,
@@ -91,14 +99,13 @@ fun PropertyDetailsScreen(
         ) {
             // 1. Image Swiper Section
             Box(modifier = Modifier.fillMaxWidth().height(350.dp)) {
-                // Inside PropertyDetailsScreen.kt
                 HorizontalPager(
                     state = pagerState,
                     modifier = Modifier.fillMaxSize()
                 ) { page ->
                     if (images.isNotEmpty()) {
                         AsyncImage(
-                            model = images[page], // This is the Cloudinary URL
+                            model = images[page],
                             contentDescription = "Property Image",
                             contentScale = ContentScale.Crop,
                             modifier = Modifier.fillMaxSize(),
@@ -115,7 +122,7 @@ fun PropertyDetailsScreen(
                     }
                 }
 
-                // Custom Pager Indicators (Dots)
+                // Pager Indicators
                 if (images.size > 1) {
                     Row(
                         Modifier
@@ -147,15 +154,23 @@ fun PropertyDetailsScreen(
                     Icon(painterResource(R.drawable.baseline_arrow_back_ios_24), null, tint = Color.White)
                 }
 
-                // Save Button Overlay
+                // --- UPDATED SAVE/BOOKMARK BUTTON ---
                 IconButton(
-                    onClick = { /* Save Logic */ },
+                    onClick = {
+                        isFavorite = !isFavorite // Immediate UI change
+                        onFavoriteToggle(property.propertyId) // Update Firebase
+                    },
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(top = 16.dp, end = 16.dp)
                         .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                 ) {
-                    Icon(painterResource(R.drawable.baseline_bookmark_24), null, tint = Yellow)
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_bookmark_24),
+                        contentDescription = "Save",
+                        // Dynamic tint based on favorites state
+                        tint = if (isFavorite) Yellow else Color.White
+                    )
                 }
             }
 
@@ -191,17 +206,18 @@ fun PropertyDetailsScreen(
                         .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
                         .padding(12.dp)
                 ) {
-                    // Owner Profile Image (You can also make this dynamic if you have profilePicUrl)
                     Image(
                         painter = painterResource(R.drawable.parkbogum),
                         contentDescription = null,
-                        modifier = Modifier.size(50.dp).clip(CircleShape),
+                        modifier = Modifier
+                            .size(50.dp)
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = ownerName, // <--- CHANGED THIS FROM HARDCODED STRING
+                            text = ownerName,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -224,7 +240,6 @@ fun PropertyDetailsScreen(
                             tint = Color.Black
                         )
                     }
-
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -244,7 +259,6 @@ fun PropertyDetailsScreen(
                     fontSize = 15.sp
                 )
 
-                // Extra space for scrolling past the bottom bar
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }

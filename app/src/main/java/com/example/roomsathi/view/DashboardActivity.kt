@@ -100,12 +100,31 @@ fun DashboardBody() {
         }
     )
 
+    // --- ADDED: Favorite ViewModel Initialization ---
+    val favoriteViewModel: com.example.roomsathi.viewmodel.FavoriteViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return com.example.roomsathi.viewmodel.FavoriteViewModel(com.example.roomsathi.repository.FavoritesRepoImpl()) as T
+            }
+        }
+    )
+
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
     var selectedProperty by remember { mutableStateOf<PropertyModel?>(null) }
 
-    // --- CHANGE 1: Observe propertyOwner instead of users for the Detail Screen ---
-    // userViewModel.users is for the logged-in user, propertyOwner is for the room owner
     val propertyOwnerState by userViewModel.propertyOwner.observeAsState()
+
+    // --- ADDED: Observe Favorite IDs and Current User ---
+    val favoriteIds by favoriteViewModel.favoriteIds.observeAsState(emptyList())
+    val currentUser = userViewModel.getCurrentUser()
+
+    // Fetch favorites once the user is known
+    LaunchedEffect(currentUser) {
+        currentUser?.uid?.let { uid ->
+            favoriteViewModel.getFavorites(uid)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -113,19 +132,26 @@ fun DashboardBody() {
             .background(LightBlue)
     ) {
         if (selectedProperty != null) {
-            // --- CHANGE 2: Call the NEW specific fetcher function ---
             LaunchedEffect(selectedProperty) {
                 selectedProperty?.ownerId?.let { id ->
                     userViewModel.getPropertyOwnerById(id)
                 }
             }
 
-            // --- CHANGE 3: Resolve name from propertyOwnerState ---
             val ownerName = propertyOwnerState?.fullName ?: "Loading..."
 
             PropertyDetailsScreen(
                 property = selectedProperty!!,
                 ownerName = ownerName,
+                // --- ADDED: Pass Favorite state and toggle logic ---
+                isFavoriteInitially = favoriteIds.contains(selectedProperty!!.propertyId),
+                onFavoriteToggle = { propId ->
+                    currentUser?.uid?.let { uid ->
+                        favoriteViewModel.toggleFavorite(uid, propId) { message ->
+                            android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
                 onBack = { selectedProperty = null },
                 onMessageClick = { ownerId ->
                     val intent = android.content.Intent(context, InboxActivity::class.java).apply {
@@ -166,7 +192,7 @@ fun DashboardBody() {
                         0 -> HomeScreen(
                             padding = innerPadding,
                             dashboardViewModel = dashboardViewModel,
-                            userViewModel = userViewModel, // HomeScreen still uses users internally for "Welcome Name"
+                            userViewModel = userViewModel,
                             onPropertyClick = { clickedProperty ->
                                 selectedProperty = clickedProperty
                             }
@@ -178,7 +204,14 @@ fun DashboardBody() {
                             }
                             context.startActivity(intent)
                         }
-                        2 -> SavedScreen()
+                        // --- CHANGED: Pass data to SavedScreen ---
+                        2 -> SavedScreen(
+                            favoriteViewModel = favoriteViewModel,
+                            dashboardViewModel = dashboardViewModel,
+                            onPropertyClick = { clickedProperty ->
+                                selectedProperty = clickedProperty
+                            }
+                        )
                         3 -> ProfileScreenBody()
                         4 -> AddingPropertyScreen(
                             onAddSuccess = {
