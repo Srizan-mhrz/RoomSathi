@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -200,6 +201,32 @@ fun Login() {
                     .padding(horizontal = 12.dp, vertical = 20.dp)
             ) {
                 Text("Sign In")
+            }
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // --- NEW: SIGN UP SECTION ---
+            Row(
+                modifier = Modifier.padding(bottom = 20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Don't have an account? ",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "Sign Up",
+                    modifier = Modifier.clickable {
+
+                        val intent = Intent(context, RegistrationActivity::class.java)
+                        context.startActivity(intent)
+                    },
+                    style = TextStyle(
+                        color = Color.Black, // Or use your Yellow theme color
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 14.sp
+                    )
+                )
             }
         }
     }

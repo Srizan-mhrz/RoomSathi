@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -99,26 +100,42 @@ fun DashboardBody() {
         }
     )
 
-    // --- 1. DEFINE THE MISSING STATE HERE ---
     var selectedIndex by rememberSaveable { mutableStateOf(0) }
     var selectedProperty by remember { mutableStateOf<PropertyModel?>(null) }
+
+    // --- CHANGE 1: Observe propertyOwner instead of users for the Detail Screen ---
+    // userViewModel.users is for the logged-in user, propertyOwner is for the room owner
+    val propertyOwnerState by userViewModel.propertyOwner.observeAsState()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(LightBlue)
     ) {
-        // --- 2. LOGIC TO SHOW DETAIL SCREEN OVER EVERYTHING ---
         if (selectedProperty != null) {
+            // --- CHANGE 2: Call the NEW specific fetcher function ---
+            LaunchedEffect(selectedProperty) {
+                selectedProperty?.ownerId?.let { id ->
+                    userViewModel.getPropertyOwnerById(id)
+                }
+            }
+
+            // --- CHANGE 3: Resolve name from propertyOwnerState ---
+            val ownerName = propertyOwnerState?.fullName ?: "Loading..."
+
             PropertyDetailsScreen(
                 property = selectedProperty!!,
+                ownerName = ownerName,
                 onBack = { selectedProperty = null },
                 onMessageClick = { ownerId ->
-                    // Logic to open chat with owner
+                    val intent = android.content.Intent(context, InboxActivity::class.java).apply {
+                        putExtra("RECEIVER_ID", ownerId)
+                        putExtra("RECEIVER_NAME", ownerName)
+                    }
+                    context.startActivity(intent)
                 }
             )
         } else {
-            // Show the main Dashboard if no property is selected
             Scaffold(
                 containerColor = Color.Transparent,
                 bottomBar = {
@@ -144,12 +161,12 @@ fun DashboardBody() {
                 },
                 floatingActionButtonPosition = FabPosition.Center,
             ) { innerPadding ->
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
                     when (selectedIndex) {
                         0 -> HomeScreen(
                             padding = innerPadding,
                             dashboardViewModel = dashboardViewModel,
-                            userViewModel = userViewModel,
+                            userViewModel = userViewModel, // HomeScreen still uses users internally for "Welcome Name"
                             onPropertyClick = { clickedProperty ->
                                 selectedProperty = clickedProperty
                             }

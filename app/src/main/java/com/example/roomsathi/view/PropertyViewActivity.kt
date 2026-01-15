@@ -36,8 +36,9 @@ import com.example.roomsathi.ui.theme.LightBlue
 @Composable
 fun PropertyDetailsScreen(
     property: PropertyModel,
+    ownerName: String, // Add this parameter
     onBack: () -> Unit,
-    onMessageClick: (String) -> Unit // Pass ownerId
+    onMessageClick: (String) -> Unit// Pass ownerId
 ) {
     // Ensure we handle the list from your model
     val images = property.imageUrls
@@ -190,18 +191,17 @@ fun PropertyDetailsScreen(
                         .background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(16.dp))
                         .padding(12.dp)
                 ) {
+                    // Owner Profile Image (You can also make this dynamic if you have profilePicUrl)
                     Image(
                         painter = painterResource(R.drawable.parkbogum),
                         contentDescription = null,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(CircleShape),
+                        modifier = Modifier.size(50.dp).clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Owner Name", // You can fetch this later via ownerId
+                            text = ownerName, // <--- CHANGED THIS FROM HARDCODED STRING
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp
@@ -224,6 +224,7 @@ fun PropertyDetailsScreen(
                             tint = Color.Black
                         )
                     }
+
                 }
 
                 Spacer(modifier = Modifier.height(24.dp))
