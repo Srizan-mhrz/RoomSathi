@@ -78,8 +78,13 @@ class PropertyRepoImpl : PropertyRepo {
 
         counterRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
-                val currentCount = currentData.getValue(Long::class.java) ?: 0L
+                val value = currentData.getValue(Long::class.java) ?: 0L
 
+                val currentCount = when (value) {
+                    is Long -> value
+                    is Int -> value.toLong()
+                    else -> 0L // If it's a HashMap or Null, reset to 0
+                }
 
                 currentData.value = currentCount + 8
                 return Transaction.success(currentData)
@@ -99,7 +104,9 @@ class PropertyRepoImpl : PropertyRepo {
                         val slotIndex = startIndex + i
 
                         updates[slotIndex.toString()] = imageUrls.getOrNull(i)
+
                     }
+
 
 
                     imagesRef.updateChildren(updates).addOnSuccessListener {
@@ -115,7 +122,13 @@ class PropertyRepoImpl : PropertyRepo {
 
                         propertiesRef.child(propertyId).setValue(finalProperty)
                             .addOnSuccessListener { callback(true, "Success", propertyId) }
+                            .addOnFailureListener { callback(false, it.message ?: "Failed to add property", null) }
+                    }.addOnFailureListener {
+                        callback(false, it.message ?: "Failed to add property", null)
                     }
+                } else {
+
+                    callback(false, "Transaction failed: ${error?.message ?: "Unknown error"}", null)
                 }
             }
         })

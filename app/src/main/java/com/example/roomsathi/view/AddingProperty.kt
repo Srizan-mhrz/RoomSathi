@@ -175,7 +175,7 @@ fun AddingPropertyScreen(
 
 
 
-                        viewModel.addProperty(
+                        viewModel. addProperty(
                             title = title,
                             location = location,
                             description = description,
