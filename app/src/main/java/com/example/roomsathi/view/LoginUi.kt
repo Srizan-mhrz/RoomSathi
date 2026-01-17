@@ -183,17 +183,20 @@ fun Login() {
             Spacer(modifier = Modifier.height(20.dp))
 
             Button(
-                onClick = {  userViewModel.login(email, password) {success, msg->
+                onClick = {  userViewModel.login(email, password) { success, msg ->
                     if (success) {
-                        val intent = Intent(
-                            context, DashboardActivity::class.java
-                        )
+                        val intent = Intent(context, DashboardActivity::class.java)
+
+                        // --- ADD THESE FLAGS ---
+                        // This clears the LoginActivity from the memory/backstack
+                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
 
                         context.startActivity(intent)
-                        activity?.finish()
+
+                        // Optional: Cast context to Activity and finish it
+                        (context as? android.app.Activity)?.finish()
                     } else {
-                        Toast.makeText(context, msg, Toast.LENGTH_LONG)
-                            .show()
+                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                     }
                 }},
                 shape = RoundedCornerShape(12.dp),

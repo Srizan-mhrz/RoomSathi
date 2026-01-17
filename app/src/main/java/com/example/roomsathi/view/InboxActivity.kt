@@ -19,11 +19,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.roomsathi.R
 import com.example.roomsathi.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
@@ -37,37 +39,55 @@ class InboxActivity : ComponentActivity() {
         val senderId = FirebaseAuth.getInstance().currentUser?.uid ?: "user_1"
         val receiverId = intent.getStringExtra("RECEIVER_ID") ?: "user_2"
         val receiverName = intent.getStringExtra("RECEIVER_NAME") ?: "Bo Gum"
-
+        val receiverImageUrl = intent.getStringExtra("RECEIVER_IMAGE") ?: ""
         enableEdgeToEdge()
         setContent {
-            InboxBody(senderId, receiverId, receiverName)
+            InboxBody(senderId, receiverId, receiverName, receiverImageUrl)
         }
     }
 }
 
 @Composable
-fun ChatTopBar(name: String) {
+fun ChatTopBar(name: String, imageUrl: String, onBack: () -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().background(DarkBlue).padding(top = 32.dp, bottom = 8.dp, start = 16.dp, end = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(DarkBlue)
+            .padding(top = 32.dp, bottom = 8.dp, start = 8.dp, end = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(painterResource(R.drawable.baseline_arrow_back_ios_24), null, Modifier.size(24.dp), tint = White)
-        Spacer(Modifier.width(8.dp))
-        Image(
-            painterResource(R.drawable.parkbogum), null,
-            Modifier.size(40.dp).clip(CircleShape), contentScale = ContentScale.Crop
+        IconButton(onClick = onBack) {
+            Icon(
+                painterResource(R.drawable.baseline_arrow_back_ios_24),
+                contentDescription = "Back",
+                tint = White
+            )
+        }
+
+        // DYNAMIC IMAGE LOADING
+        AsyncImage(
+            model = if (imageUrl.isNotEmpty()) imageUrl else R.drawable.baseline_person_24,
+            contentDescription = "Profile Picture",
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(Color.Gray.copy(alpha = 0.2f)),
+            contentScale = ContentScale.Crop,
+            placeholder = painterResource(R.drawable.baseline_person_24),
+            error = painterResource(R.drawable.baseline_person_24)
         )
-        Spacer(Modifier.width(8.dp))
+
+        Spacer(Modifier.width(12.dp))
         Text(name, color = White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 
 @Composable
-fun InboxBody(senderId: String, receiverId: String, receiverName: String) {
+fun InboxBody(senderId: String, receiverId: String, receiverName: String, receiverImageUrl: String) {
     val database = FirebaseDatabase.getInstance().reference
     val chatRoomId = if (senderId < receiverId) senderId + receiverId else receiverId + senderId
-
+    val context = LocalContext.current
     val chatMessages = remember { mutableStateListOf<ChatMessage>() }
     var messageText by remember { mutableStateOf("") }
     val listState = rememberLazyListState() // State for the scroll
@@ -95,7 +115,13 @@ fun InboxBody(senderId: String, receiverId: String, receiverName: String) {
 
     Scaffold(
         containerColor = LightBlue,
-        topBar = { ChatTopBar(receiverName) },
+        topBar = {
+            ChatTopBar(
+                name = receiverName,
+                imageUrl = receiverImageUrl,
+                onBack = { (context as? ComponentActivity)?.finish() }
+            )
+        },
         bottomBar = {
             ChatInputBar(
                 text = messageText,
