@@ -52,6 +52,56 @@ class UserViewModel(val repo: UserRepo) : ViewModel() {
     fun forgetPassword(email: String, callback: (Boolean, String) -> Unit) {
         repo.forgetPassword(email, callback)
     }
+    // --- NEW: Function to handle the full profile update ---
+    fun updateUserProfile(
+        name: String,
+        phone: String,
+        imageUri: Uri?,
+        callback: (Boolean, String) -> Unit
+    ) {
+        val currentUser = getCurrentUser()
+        if (currentUser == null) {
+            callback(false, "User not logged in")
+            return
+        }
+        val userId = currentUser.uid
+
+        // If there is a new image to upload
+        if (imageUri != null) {
+            uploadProfilePicture(imageUri) { success, message, imageUrl ->
+                if (success && imageUrl != null) {
+                    // Use .copy() to keep the existing email and userId from the current state
+                    val updatedModel = users.value?.copy(
+                        fullName = name,
+                        phoneNumber = phone,
+                        profileImageUrl = imageUrl
+                    ) ?: com.example.roomsathi.model.UserModel(
+                        userId = userId,
+                        fullName = name,
+                        phoneNumber = phone,
+                        profileImageUrl = imageUrl,
+                        email = currentUser.email ?: ""
+                    )
+
+                    updateProfile(userId, updatedModel, callback)
+                } else {
+                    callback(false, "Image upload failed: $message")
+                }
+            }
+        } else {
+            // No new image, just update the text fields
+            val updatedModel = users.value?.copy(
+                fullName = name,
+                phoneNumber = phone
+            )
+
+            if (updatedModel != null) {
+                updateProfile(userId, updatedModel, callback)
+            } else {
+                callback(false, "User data not loaded")
+            }
+        }
+    }
 
     fun updateProfile(userId: String, model: UserModel, callback: (Boolean, String) -> Unit) {
         repo.updateProfile(userId, model, callback)
