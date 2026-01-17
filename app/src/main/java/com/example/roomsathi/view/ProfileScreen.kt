@@ -1,7 +1,10 @@
 package com.example.roomsathi
 
 import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -61,6 +64,9 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
 
     val userModel by userViewModel.users.observeAsState()
     val myPosts by dashboardViewModel.myPosts.collectAsState()
+
+    // 1. Observe loading state to show a progress indicator
+    val isLoading by dashboardViewModel.isLoading.collectAsState()
 
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedProperty by remember { mutableStateOf<PropertyModel?>(null) }
@@ -156,16 +162,34 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
             }
         }
 
+        // 2. FIXED: onSave now calls the ViewModel to update Firebase
         if (showEditDialog && selectedProperty != null) {
             EditPostDialog(
                 property = selectedProperty!!,
                 onDismiss = { showEditDialog = false },
-                onSave = { updatedProperty ->
-                    // To be connected to ViewModel: dashboardViewModel.updateProperty(updatedProperty)
-                    showEditDialog = false
-                    Toast.makeText(context, "Changes Saved Locally", Toast.LENGTH_SHORT).show()
+                onSave = { updatedProperty, newImageUris ->
+                    dashboardViewModel.updateProperty(updatedProperty, newImageUris) { success, msg ->
+                        if (success) {
+                            showEditDialog = false
+                            Toast.makeText(context, "Post Updated!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "Error: $msg", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             )
+        }
+
+        // 3. ADDED: Loading Overlay to prevent interaction during upload
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Yellow)
+            }
         }
     }
 }
@@ -174,16 +198,21 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
 fun EditPostDialog(
     property: PropertyModel,
     onDismiss: () -> Unit,
-    onSave: (PropertyModel) -> Unit
+    onSave: (PropertyModel, List<Uri>) -> Unit
 ) {
     var title by remember { mutableStateOf(property.title) }
-
-    // FIX: Convert Double to String for the TextField
     var priceStr by remember { mutableStateOf(property.cost.toString()) }
-
     var description by remember { mutableStateOf(property.description) }
     var location by remember { mutableStateOf(property.location) }
-    var imageUrls by remember { mutableStateOf(property.imageUrls.toMutableList()) }
+
+    var existingUrls by remember { mutableStateOf(property.imageUrls.toMutableList()) }
+    var newPhotos by remember { mutableStateOf<List<Uri>>(emptyList()) }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        newPhotos = newPhotos + uris
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -204,33 +233,36 @@ fun EditPostDialog(
                 Text("Edit Room Details", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(16.dp))
 
-                Text("Room Photos", color = Yellow, fontSize = 14.sp)
+                Text("Photos", color = Yellow, fontSize = 14.sp)
                 Spacer(Modifier.height(8.dp))
+
                 Row(
                     modifier = Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    imageUrls.forEachIndexed { index, url ->
-                        Box(modifier = Modifier.size(100.dp)) {
-                            AsyncImage(
-                                model = url,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
-                                contentScale = ContentScale.Crop
-                            )
-                            IconButton(
-                                onClick = {
-                                    val newList = imageUrls.toMutableList()
-                                    newList.removeAt(index)
-                                    imageUrls = newList
-                                },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .size(24.dp)
-                                    .background(Color.Black.copy(0.6f), CircleShape)
-                            ) {
-                                Icon(painterResource(R.drawable.baseline_delete_24), null, tint = Color.Red, modifier = Modifier.size(14.dp))
-                            }
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(White.copy(alpha = 0.1f))
+                            .clickable { launcher.launch("image/*") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(painterResource(R.drawable.outline_add_a_photo_24), null, tint = White)
+                            Text("Add", color = White, fontSize = 12.sp)
+                        }
+                    }
+
+                    newPhotos.forEachIndexed { index, uri ->
+                        PhotoBox(model = uri) {
+                            newPhotos = newPhotos.toMutableList().apply { removeAt(index) }
+                        }
+                    }
+
+                    existingUrls.forEachIndexed { index, url ->
+                        PhotoBox(model = url) {
+                            existingUrls = existingUrls.toMutableList().apply { removeAt(index) }
                         }
                     }
                 }
@@ -238,10 +270,7 @@ fun EditPostDialog(
                 Spacer(Modifier.height(16.dp))
 
                 EditField(label = "Title", value = title, onValueChange = { title = it })
-
-                // Price field now handles String correctly
                 EditField(label = "Price (Rs)", value = priceStr, onValueChange = { priceStr = it })
-
                 EditField(label = "Location", value = location, onValueChange = { location = it })
                 EditField(
                     label = "Description",
@@ -259,15 +288,17 @@ fun EditPostDialog(
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            // Convert price back to Double when saving
                             val priceDouble = priceStr.toDoubleOrNull() ?: 0.0
-                            onSave(property.copy(
-                                title = title,
-                                cost = priceDouble,
-                                description = description,
-                                imageUrls = imageUrls,
-                                location = location
-                            ))
+                            onSave(
+                                property.copy(
+                                    title = title,
+                                    cost = priceDouble,
+                                    description = description,
+                                    imageUrls = existingUrls,
+                                    location = location
+                                ),
+                                newPhotos
+                            )
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = Yellow),
                         shape = RoundedCornerShape(12.dp)
@@ -276,6 +307,25 @@ fun EditPostDialog(
                     }
                 }
             }
+        }
+    }
+}
+
+// ... Rest of the helper composables (PhotoBox, EditField, MyPostCard, etc.) ...
+@Composable
+fun PhotoBox(model: Any, onRemove: () -> Unit) {
+    Box(modifier = Modifier.size(100.dp)) {
+        AsyncImage(
+            model = model,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
+            contentScale = ContentScale.Crop
+        )
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.align(Alignment.TopEnd).size(24.dp).background(Color.Black.copy(0.6f), CircleShape)
+        ) {
+            Icon(painterResource(R.drawable.baseline_delete_24), null, tint = Color.Red, modifier = Modifier.size(14.dp))
         }
     }
 }

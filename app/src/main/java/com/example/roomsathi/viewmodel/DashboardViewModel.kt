@@ -1,5 +1,6 @@
 package com.example.roomsathi.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.roomsathi.model.PropertyModel
@@ -61,6 +62,16 @@ class DashboardViewModel(private val repo: PropertyRepo) : ViewModel() {
         repo.getAllProperties { resultList ->
             _properties.value = resultList.map { it.second }
             _isLoading.value = false
+        }
+    }
+    fun updateProperty(updatedProperty: PropertyModel, newImageUris: List<Uri>, onResult: (Boolean, String) -> Unit) {
+        _isLoading.value = true // Start Spinner
+        repo.updateProperty(updatedProperty, newImageUris) { success, msg ->
+            _isLoading.value = false // Stop Spinner
+            if (success) {
+                fetchAllProperties()
+            }
+            onResult(success, msg)
         }
     }
 
