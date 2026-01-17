@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,6 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.roomsathi.model.PropertyModel
 import com.example.roomsathi.ui.theme.*
@@ -56,9 +59,11 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
     val context = LocalContext.current
     val backgroundColor = LightBlue
 
-    // Observe user data and user-specific posts
     val userModel by userViewModel.users.observeAsState()
     val myPosts by dashboardViewModel.myPosts.collectAsState()
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    var selectedProperty by remember { mutableStateOf<PropertyModel?>(null) }
 
     val profileName = userModel?.fullName ?: "Loading..."
     val profileEmail = userModel?.email ?: "user@example.com"
@@ -79,22 +84,16 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
-                    .verticalScroll(rememberScrollState()) // Allows scrolling through posts
+                    .verticalScroll(rememberScrollState())
             ) {
-                // Header section
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 24.dp)
                 ) {
-                    ProfileHeaderContent(
-                        profileName = profileName,
-                        profileHandle = profileEmail,
-                        profileImageUrl = profileImageUrl
-                    )
+                    ProfileHeaderContent(profileName, profileEmail, profileImageUrl)
                 }
 
-                // --- MY POSTS SECTION ---
                 Text(
                     text = "My Posts",
                     color = White,
@@ -115,8 +114,8 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                         MyPostCard(
                             property = property,
                             onEdit = {
-                                // Logic to open EditPropertyActivity
-                                Toast.makeText(context, "Edit ${property.title}", Toast.LENGTH_SHORT).show()
+                                selectedProperty = property
+                                showEditDialog = true
                             },
                             onDelete = {
                                 dashboardViewModel.deleteProperty(property.propertyId) { success, msg ->
@@ -129,7 +128,6 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Menu items section
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -139,13 +137,10 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
                         ProfileItem(R.drawable.outline_location_on_24, "Location", {})
                         HorizontalDivider(color = White.copy(alpha = 0.2f), thickness = 0.5.dp)
-
                         ProfileItem(R.drawable.baseline_history_24, "History", {})
                         HorizontalDivider(color = White.copy(alpha = 0.2f), thickness = 0.5.dp)
-
                         ProfileItem(R.drawable.baseline_settings_24, "Account settings", {})
                         HorizontalDivider(color = White.copy(alpha = 0.2f), thickness = 0.5.dp)
-
                         ProfileItem(
                             iconRes = R.drawable.baseline_logout_24,
                             label = "Log Out",
@@ -160,66 +155,178 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                 }
             }
         }
+
+        if (showEditDialog && selectedProperty != null) {
+            EditPostDialog(
+                property = selectedProperty!!,
+                onDismiss = { showEditDialog = false },
+                onSave = { updatedProperty ->
+                    // To be connected to ViewModel: dashboardViewModel.updateProperty(updatedProperty)
+                    showEditDialog = false
+                    Toast.makeText(context, "Changes Saved Locally", Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun MyPostCard(
+fun EditPostDialog(
     property: PropertyModel,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDismiss: () -> Unit,
+    onSave: (PropertyModel) -> Unit
 ) {
+    var title by remember { mutableStateOf(property.title) }
+
+    // FIX: Convert Double to String for the TextField
+    var priceStr by remember { mutableStateOf(property.cost.toString()) }
+
+    var description by remember { mutableStateOf(property.description) }
+    var location by remember { mutableStateOf(property.location) }
+    var imageUrls by remember { mutableStateOf(property.imageUrls.toMutableList()) }
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .wrapContentHeight()
+                .clip(RoundedCornerShape(24.dp)),
+            color = DarkBlue
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Text("Edit Room Details", color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.height(16.dp))
+
+                Text("Room Photos", color = Yellow, fontSize = 14.sp)
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    imageUrls.forEachIndexed { index, url ->
+                        Box(modifier = Modifier.size(100.dp)) {
+                            AsyncImage(
+                                model = url,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            IconButton(
+                                onClick = {
+                                    val newList = imageUrls.toMutableList()
+                                    newList.removeAt(index)
+                                    imageUrls = newList
+                                },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .size(24.dp)
+                                    .background(Color.Black.copy(0.6f), CircleShape)
+                            ) {
+                                Icon(painterResource(R.drawable.baseline_delete_24), null, tint = Color.Red, modifier = Modifier.size(14.dp))
+                            }
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(16.dp))
+
+                EditField(label = "Title", value = title, onValueChange = { title = it })
+
+                // Price field now handles String correctly
+                EditField(label = "Price (Rs)", value = priceStr, onValueChange = { priceStr = it })
+
+                EditField(label = "Location", value = location, onValueChange = { location = it })
+                EditField(
+                    label = "Description",
+                    value = description,
+                    onValueChange = { description = it },
+                    isMultiLine = true
+                )
+
+                Spacer(Modifier.height(24.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel", color = Color.LightGray)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    Button(
+                        onClick = {
+                            // Convert price back to Double when saving
+                            val priceDouble = priceStr.toDoubleOrNull() ?: 0.0
+                            onSave(property.copy(
+                                title = title,
+                                cost = priceDouble,
+                                description = description,
+                                imageUrls = imageUrls,
+                                location = location
+                            ))
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("Save Changes", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EditField(label: String, value: String, onValueChange: (String) -> Unit, isMultiLine: Boolean = false) {
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        Text(label, color = Color.Gray, fontSize = 12.sp)
+        TextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = White.copy(alpha = 0.05f),
+                unfocusedContainerColor = White.copy(alpha = 0.05f),
+                focusedTextColor = White,
+                unfocusedTextColor = White,
+                cursorColor = Yellow,
+                focusedIndicatorColor = Yellow
+            ),
+            maxLines = if (isMultiLine) 4 else 1,
+            singleLine = !isMultiLine
+        )
+    }
+}
+
+@Composable
+fun MyPostCard(property: PropertyModel, onEdit: () -> Unit, onDelete: () -> Unit) {
     var showMenu by remember { mutableStateOf(false) }
 
     GlassSurface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
         containerColor = White.copy(alpha = 0.05f)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             AsyncImage(
                 model = property.imageUrls.firstOrNull(),
                 contentDescription = null,
-                modifier = Modifier
-                    .size(60.dp)
-                    .clip(RoundedCornerShape(12.dp)),
+                modifier = Modifier.size(60.dp).clip(RoundedCornerShape(12.dp)),
                 contentScale = ContentScale.Crop,
                 placeholder = painterResource(R.drawable.apartment)
             )
-
             Spacer(modifier = Modifier.width(12.dp))
-
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = property.title,
-                    color = White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 15.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "Rs ${property.cost}",
-                    color = Yellow,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(property.title, color = White, fontWeight = FontWeight.Bold, fontSize = 15.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("Rs ${property.cost}", color = Yellow, fontSize = 13.sp, fontWeight = FontWeight.Medium)
             }
-
-            // Three-dot menu
             Box {
                 IconButton(onClick = { showMenu = true }) {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_more_vert_24),
-                        contentDescription = "Options",
-                        tint = White
-                    )
+                    Icon(painterResource(R.drawable.baseline_more_vert_24), "Options", tint = White)
                 }
-
                 DropdownMenu(
                     expanded = showMenu,
                     onDismissRequest = { showMenu = false },
@@ -228,18 +335,12 @@ fun MyPostCard(
                     DropdownMenuItem(
                         text = { Text("Edit", color = White) },
                         leadingIcon = { Icon(painterResource(R.drawable.baseline_edit_24), null, tint = White) },
-                        onClick = {
-                            showMenu = false
-                            onEdit()
-                        }
+                        onClick = { showMenu = false; onEdit() }
                     )
                     DropdownMenuItem(
                         text = { Text("Delete", color = Color.Red) },
                         leadingIcon = { Icon(painterResource(R.drawable.baseline_delete_24), null, tint = Color.Red) },
-                        onClick = {
-                            showMenu = false
-                            onDelete()
-                        }
+                        onClick = { showMenu = false; onDelete() }
                     )
                 }
             }
@@ -250,28 +351,19 @@ fun MyPostCard(
 @Composable
 fun ProfileHeaderContent(profileName: String, profileHandle: String, profileImageUrl: String) {
     val context = LocalContext.current
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         AsyncImage(
             model = profileImageUrl,
             contentDescription = null,
-            modifier = Modifier
-                .size(70.dp)
-                .clip(CircleShape)
-                .background(White.copy(alpha = 0.1f)),
+            modifier = Modifier.size(70.dp).clip(CircleShape).background(White.copy(alpha = 0.1f)),
             contentScale = ContentScale.Crop,
             placeholder = painterResource(R.drawable.baseline_person_24)
         )
-
         Spacer(modifier = Modifier.width(16.dp))
-
         Column(modifier = Modifier.weight(1f)) {
             Text(profileName, style = TextStyle(color = White, fontSize = 20.sp, fontWeight = FontWeight.Bold), maxLines = 1)
             Text(profileHandle, style = TextStyle(color = Color.LightGray.copy(alpha = 0.8f), fontSize = 14.sp), maxLines = 1)
         }
-
         Button(
             onClick = { context.startActivity(Intent(context, EditProfileActivity::class.java)) },
             colors = ButtonDefaults.buttonColors(containerColor = DarkBlue),
@@ -285,20 +377,12 @@ fun ProfileHeaderContent(profileName: String, profileHandle: String, profileImag
 @Composable
 fun ProfileItem(iconRes: Int, label: String, onClick: () -> Unit, isLogout: Boolean = false) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(vertical = 12.dp),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painterResource(iconRes),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp),
-            tint = if (isLogout) Color(0xFFFF4444) else White
-        )
-        Spacer(modifier = Modifier.width(20.dp))
+        Icon(painter = painterResource(iconRes), null, modifier = Modifier.size(24.dp), tint = if (isLogout) Color(0xFFFF4444) else White)
+        Spacer(Modifier.width(20.dp))
         Text(label, modifier = Modifier.weight(1f), style = TextStyle(color = White, fontSize = 16.sp))
-        Icon(painter = painterResource(R.drawable.baseline_arrow_forward_ios_24), contentDescription = null, modifier = Modifier.size(14.dp), tint = White.copy(alpha = 0.5f))
+        Icon(painterResource(R.drawable.baseline_arrow_forward_ios_24), null, modifier = Modifier.size(14.dp), tint = White.copy(alpha = 0.5f))
     }
 }
