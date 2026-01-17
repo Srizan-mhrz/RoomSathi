@@ -215,7 +215,10 @@ fun DashboardBody() {
                                 selectedProperty = clickedProperty
                             }
                         )
-                        3 -> ProfileScreenBody(userViewModel = userViewModel)
+                        3 -> ProfileScreenBody(
+                            userViewModel = userViewModel,
+                            dashboardViewModel = dashboardViewModel
+                        )
                         4 -> AddingPropertyScreen(
                             onAddSuccess = {
                                 selectedIndex = 0

@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="DashboardActivity">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-01-15T07:58:59.684848100Z">
+        <DropdownSelection timestamp="2026-01-16T01:46:23.164687200Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ACER\.android\avd\Medium_Phone.avd" />
@@ -15,7 +15,7 @@
       </SelectionState>
       <SelectionState runConfigName="LoginUi">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-01-15T07:58:55.218551700Z">
+        <DropdownSelection timestamp="2026-01-16T01:46:31.552761500Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\ACER\.android\avd\Medium_Phone.avd" />
