@@ -45,7 +45,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name=".view.SettingsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.RoomSathi" />
         <activity
             android:name=".view.DashboardActivity"
             android:exported="true"

@@ -37,6 +37,7 @@ import coil.compose.AsyncImage
 import com.example.roomsathi.model.PropertyModel
 import com.example.roomsathi.ui.theme.*
 import com.example.roomsathi.view.EditProfileActivity
+import com.example.roomsathi.view.SettingsActivity
 import com.example.roomsathi.viewmodel.DashboardViewModel
 import com.example.roomsathi.viewmodel.UserViewModel
 
@@ -64,8 +65,6 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
 
     val userModel by userViewModel.users.observeAsState()
     val myPosts by dashboardViewModel.myPosts.collectAsState()
-
-    // 1. Observe loading state to show a progress indicator
     val isLoading by dashboardViewModel.isLoading.collectAsState()
 
     var showEditDialog by remember { mutableStateOf(false) }
@@ -92,6 +91,7 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
+                // Profile Header
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -100,6 +100,7 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                     ProfileHeaderContent(profileName, profileEmail, profileImageUrl)
                 }
 
+                // Posts Section
                 Text(
                     text = "My Posts",
                     color = White,
@@ -134,6 +135,7 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Simplified Profile Options
                 GlassSurface(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -141,12 +143,16 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                         .padding(bottom = 24.dp)
                 ) {
                     Column(modifier = Modifier.padding(vertical = 4.dp)) {
-                        ProfileItem(R.drawable.outline_location_on_24, "Location", {})
+                        // Kept Account Settings
+                        ProfileItem(
+                            iconRes = R.drawable.baseline_settings_24,
+                            label = "Account settings",
+                            onClick = {context.startActivity(Intent(context, SettingsActivity::class.java))}
+                        )
+
                         HorizontalDivider(color = White.copy(alpha = 0.2f), thickness = 0.5.dp)
-                        ProfileItem(R.drawable.baseline_history_24, "History", {})
-                        HorizontalDivider(color = White.copy(alpha = 0.2f), thickness = 0.5.dp)
-                        ProfileItem(R.drawable.baseline_settings_24, "Account settings", {})
-                        HorizontalDivider(color = White.copy(alpha = 0.2f), thickness = 0.5.dp)
+
+                        // Kept Log Out
                         ProfileItem(
                             iconRes = R.drawable.baseline_logout_24,
                             label = "Log Out",
@@ -162,7 +168,6 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
             }
         }
 
-        // 2. FIXED: onSave now calls the ViewModel to update Firebase
         if (showEditDialog && selectedProperty != null) {
             EditPostDialog(
                 property = selectedProperty!!,
@@ -180,7 +185,6 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
             )
         }
 
-        // 3. ADDED: Loading Overlay to prevent interaction during upload
         if (isLoading) {
             Box(
                 modifier = Modifier
@@ -193,6 +197,8 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
         }
     }
 }
+
+// ... No changes needed to EditPostDialog, PhotoBox, EditField, MyPostCard, ProfileHeaderContent, or ProfileItem ...
 
 @Composable
 fun EditPostDialog(
@@ -311,7 +317,6 @@ fun EditPostDialog(
     }
 }
 
-// ... Rest of the helper composables (PhotoBox, EditField, MyPostCard, etc.) ...
 @Composable
 fun PhotoBox(model: Any, onRemove: () -> Unit) {
     Box(modifier = Modifier.size(100.dp)) {
