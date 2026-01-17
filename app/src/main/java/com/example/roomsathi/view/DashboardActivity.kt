@@ -228,6 +228,7 @@ fun DashboardBody() {
                             val intent = android.content.Intent(context, InboxActivity::class.java).apply {
                                 putExtra("RECEIVER_ID", selectedUser.uid)
                                 putExtra("RECEIVER_NAME", selectedUser.name)
+                                putExtra("RECEIVER_IMAGE", selectedUser.imageUrl)
                             }
                             context.startActivity(intent)
                         }
