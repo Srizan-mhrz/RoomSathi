@@ -1,10 +1,12 @@
 package com.example.roomsathi.view
 
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -12,15 +14,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,148 +28,167 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.roomsathi.R
 import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.viewmodel.UserViewModel
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 
 class EditProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            EditProfileScreen(onBack = { finish() }) // finish() closes the Activity
+            EditProfileScreen(onBack = { finish() })
         }
     }
 }
+
 @Composable
 fun EditProfileScreen(onBack: () -> Unit) {
+    val context = LocalContext.current
+    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
+    val user by userViewModel.users.observeAsState(initial = null)
 
-    // State variables for each text field
-    val userViewModel= remember { UserViewModel(UserRepoImpl()) }
-    val user =userViewModel.users.observeAsState(initial=null)
+    // UI State
     var name by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var username by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
+    var isUpdating by remember { mutableStateOf(false) }
+
+    // Fetch user data on entry
+    LaunchedEffect(Unit) {
+        userViewModel.getCurrentUser()?.uid?.let { userViewModel.getUserById(it) }
+    }
+
+    // Populate fields when user data is loaded
+    LaunchedEffect(user) {
+        user?.let {
+            if (name.isEmpty()) name = it.fullName ?: ""
+            if (phoneNumber.isEmpty()) phoneNumber = it.phoneNumber ?: ""
+        }
+    }
+
+    // Gallery Launcher
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        selectedImageUri = uri
+    }
 
     Scaffold(
         topBar = {
-            EditProfileTopAppBar(onBackClicked = { onBack() }, onSaveClicked = { /* Handle save action */ })
+            EditProfileTopAppBar(onBackClicked = onBack)
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState()) // Make the column scrollable
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Edit Profile",
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
                 modifier = Modifier
-                    .padding(vertical = 16.dp)
-                    .align(Alignment.Start)
-            )
-
-            ProfileImageWithEditor()
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Input Fields
-            EditProfileTextField(label = "Name", value = name, onValueChange = { name = it })
-            EditProfileTextField(label = "Email Address", value = email, onValueChange = { email = it }, keyboardType = KeyboardType.Email)
-            EditProfileTextField(label = "User name", value = username, onValueChange = { username = it })
-            PasswordTextField(label = "Password", password = password, onPasswordChange = { password = it }, passwordVisible = passwordVisible, onPasswordVisibilityChange = { passwordVisible = it })
-            PhoneNumberField(label = "Phone number", phoneNumber = phoneNumber, onPhoneNumberChange = { phoneNumber = it })
-        }
-    }
-}
-
-@Composable
-fun EditProfileTopAppBar(onBackClicked: () -> Unit, onSaveClicked: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF3A60F5), Color(0xFF5D85F6))
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Edit Profile",
+                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.padding(vertical = 16.dp).align(Alignment.Start)
                 )
-            )
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBackClicked) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+
+                // Profile Image Section
+                ProfileImageWithEditor(
+                    // Show picked image if exists, otherwise show firebase image
+                    displayImage = selectedImageUri ?: user?.profileImageUrl ?: "",
+                    onImageClick = { launcher.launch("image/*") }
+                )
+
+                Spacer(modifier = Modifier.height(32.dp))
+
+                EditProfileTextField(label = "Full Name", value = name, onValueChange = { name = it })
+                EditProfileTextField(label = "Phone Number", value = phoneNumber, onValueChange = { phoneNumber = it }, keyboardType = KeyboardType.Phone)
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                Button(
+                    onClick = {
+                        isUpdating = true
+                        userViewModel.updateUserProfile(name, phoneNumber, selectedImageUri) { success, msg ->
+                            isUpdating = false
+                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                            if (success) onBack()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A60F5)),
+                    enabled = !isUpdating
+                ) {
+                    if (isUpdating) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
-            Spacer(modifier = Modifier.weight(1f))
-            // The checkmark is positioned absolutely in the original design,
-            // but for simplicity, placing it here. You can adjust as needed.
         }
     }
 }
 
 @Composable
-fun ProfileImageWithEditor() {
-    Box(contentAlignment = Alignment.Center) {
-
+fun ProfileImageWithEditor(displayImage: Any, onImageClick: () -> Unit) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier.clickable { onImageClick() }
+    ) {
         Image(
-            painter = rememberAsyncImagePainter("https://i.insider.com/655e4e2c57f2723c21a316e6?width=700"),
+            painter = rememberAsyncImagePainter(
+                model = if (displayImage == "") R.drawable.baseline_person_24 else displayImage
+            ),
             contentDescription = "Profile Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
+                .background(Color.Gray.copy(alpha = 0.2f))
         )
+        // Camera Overlay
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .offset(x = (-8).dp, y = (-8).dp)
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
                 .background(Color.White)
                 .padding(4.dp)
-                .clickable { /* TODO: Handle image change */ }
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.baseline_photo_camera_24), // You need to add a camera icon to your drawables
-                contentDescription = "Change profile picture",
-                modifier = Modifier
-                    .size(20.dp)
-                    .align(Alignment.Center),
+                painter = painterResource(id = R.drawable.baseline_photo_camera_24),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp).align(Alignment.Center),
                 tint = Color.Black
             )
         }
-
-        Icon(
-            imageVector = Icons.Default.Check,
-            contentDescription = "Save Changes",
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = 100.dp, y = (-50).dp)
-                .size(36.dp)
-                .clickable { /* TODO: Handle save action */ },
-            tint = Color.Black
-        )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditProfileTopAppBar(onBackClicked: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(60.dp)
+            .background(brush = Brush.linearGradient(colors = listOf(Color(0xFF3A60F5), Color(0xFF5D85F6))))
+    ) {
+        IconButton(onClick = onBackClicked, modifier = Modifier.align(Alignment.CenterStart)) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
+        }
+    }
+}
 
 @Composable
 fun EditProfileTextField(
@@ -179,125 +198,21 @@ fun EditProfileTextField(
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-
+        Text(text = label, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                unfocusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                focusedBorderColor = Color.Transparent,
+                focusedContainerColor = Color.Gray.copy(alpha = 0.1f),
+                unfocusedContainerColor = Color.Gray.copy(alpha = 0.1f),
+                focusedBorderColor = Color(0xFF3A60F5),
                 unfocusedBorderColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
             singleLine = true
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
     }
-}
-
-@Composable
-fun PasswordTextField(
-    label: String,
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    passwordVisible: Boolean,
-    onPasswordVisibilityChange: (Boolean) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            trailingIcon = {
-
-                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                val description = if (passwordVisible) "Hide password" else "Show password"
-                IconButton(onClick = { onPasswordVisibilityChange(!passwordVisible) }) {
-                    Icon(imageVector = image, description)
-                }
-            },
-
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                unfocusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedTrailingIconColor = Color.Black,
-                unfocusedTrailingIconColor = Color.Gray
-            ),
-            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
-            singleLine = true
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Composable
-fun PhoneNumberField(
-    label: String,
-    phoneNumber: String,
-    onPhoneNumberChange: (String) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .background(Color.Gray.copy(alpha = 0.15f), RoundedCornerShape(16.dp)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                    .clickable { /* TODO: Show country code picker */ },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("+977", fontSize = 16.sp)
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Select country code")
-            }
-
-
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray.copy(alpha = 0.5f))
-            )
-
-
-            BasicTextField(
-                value = phoneNumber,
-                onValueChange = onPhoneNumberChange,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                    .fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface),
-                singleLine = true
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun EditProfileScreenPreview() {
-//    EditProfileScreen()
 }

@@ -5,14 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,11 +18,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.roomsathi.R
 import com.example.roomsathi.ui.theme.*
 import com.google.firebase.auth.FirebaseAuth
@@ -36,10 +36,10 @@ class MessageActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MessageBody { selectedUser ->
-                // Transition to the Inbox/Chat screen
                 val intent = Intent(this, InboxActivity::class.java).apply {
                     putExtra("RECEIVER_ID", selectedUser.uid)
                     putExtra("RECEIVER_NAME", selectedUser.name)
+                    putExtra("RECEIVER_IMAGE", selectedUser.imageUrl)
                 }
                 startActivity(intent)
             }
@@ -53,7 +53,6 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
     val currentUser = FirebaseAuth.getInstance().currentUser
     val database = FirebaseDatabase.getInstance().reference
 
-    // 1. Fetch only CHATTED users
     LaunchedEffect(currentUser?.uid) {
         if (currentUser == null) return@LaunchedEffect
 
@@ -62,24 +61,27 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
         myChatsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 userList.clear()
-                // Get all User IDs I have a history with
                 val chatPartnerIds = snapshot.children.mapNotNull { it.key }
 
                 chatPartnerIds.forEach { partnerId ->
-                    // Fetch details for each specific partner
                     database.child("users").child(partnerId)
                         .addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(userSnapshot: DataSnapshot) {
-                                val userName = userSnapshot.child("fullName").value.toString()
+                                val userName = userSnapshot.child("fullName").value?.toString() ?: "Unknown"
+                                // Fetch the actual profile image URL from your Firebase users node
+                                val profileImageUrl = userSnapshot.child("profileImageUrl").value?.toString() ?: ""
 
-                                userList.add(
-                                    UserItemData(
-                                        uid = partnerId,
-                                        name = userName,
-                                        preview = "Tap to view messages",
-                                        imageRes = R.drawable.parkbogum
+                                // Avoid adding duplicates if the listener triggers again
+                                if (userList.none { it.uid == partnerId }) {
+                                    userList.add(
+                                        UserItemData(
+                                            uid = partnerId,
+                                            name = userName,
+                                            preview = "Tap to view messages",
+                                            imageUrl = profileImageUrl
+                                        )
                                     )
-                                )
+                                }
                             }
                             override fun onCancelled(error: DatabaseError) {}
                         })
@@ -96,7 +98,6 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
                 .padding(padding)
                 .background(DarkBlue)
         ) {
-            // Top bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,7 +107,6 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
                 Text("Messages", color = White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
             }
 
-            // Real-time filtered user list
             if (userList.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("No conversations yet", color = White.copy(alpha = 0.5f))
@@ -134,15 +134,22 @@ fun MessageRow(user: UserItemData, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(user.imageRes),
-            contentDescription = null,
+        // CHANGED: Use AsyncImage to load the URL from Cloudinary/Firebase
+        AsyncImage(
+            model = user.imageUrl,
+            contentDescription = "Profile Picture",
             modifier = Modifier
                 .size(55.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
+                .clip(CircleShape)
+                .background(White.copy(alpha = 0.1f)),
+            contentScale = ContentScale.Crop,
+            // Shows a default icon while loading or if the URL is empty
+            placeholder = painterResource(R.drawable.baseline_person_24),
+            error = painterResource(R.drawable.baseline_person_24)
         )
+
         Spacer(modifier = Modifier.width(12.dp))
+
         Column(modifier = Modifier.fillMaxWidth()) {
             Text(
                 user.name,
@@ -156,10 +163,10 @@ fun MessageRow(user: UserItemData, onClick: () -> Unit) {
     }
 }
 
-// Data model for the UI list
+// Updated Data model to use String for the image URL
 data class UserItemData(
     val uid: String,
     val name: String,
     val preview: String,
-    val imageRes: Int
+    val imageUrl: String
 )

@@ -39,4 +39,9 @@ interface PropertyRepo {
         newUrl: String,
         callback: (Boolean, String) -> Unit
     )
+    fun updateProperty(
+        property: PropertyModel,
+        newImageUris: List<android.net.Uri>,
+        callback: (Boolean, String) -> Unit
+    )
 }
