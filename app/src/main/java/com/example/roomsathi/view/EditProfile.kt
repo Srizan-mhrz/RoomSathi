@@ -51,29 +51,40 @@ class EditProfileActivity : ComponentActivity() {
         }
     }
 }
+
+
 @Composable
 fun EditProfileScreen(onBack: () -> Unit) {
+    // State variables
+    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
+    val user by userViewModel.users.observeAsState(initial = null)
 
-    // State variables for each text field
-    val userViewModel= remember { UserViewModel(UserRepoImpl()) }
-    val user =userViewModel.users.observeAsState(initial=null)
     var name by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
-    var username by rememberSaveable { mutableStateOf("") }
-    var password by rememberSaveable { mutableStateOf("") }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+    // Update fields when user data is loaded
+    LaunchedEffect(user) {
+        user?.let {
+            name = it.fullName ?: ""
+            phoneNumber = it.phoneNumber ?: ""
+        }
+    }
 
     Scaffold(
         topBar = {
-            EditProfileTopAppBar(onBackClicked = { onBack() }, onSaveClicked = { /* Handle save action */ })
+            EditProfileTopAppBar(
+                onBackClicked = { onBack() },
+                onSaveClicked = {
+                    // TODO: Call viewModel.updateProfile(name, phoneNumber)
+                }
+            )
         }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState()) // Make the column scrollable
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -85,16 +96,34 @@ fun EditProfileScreen(onBack: () -> Unit) {
                     .align(Alignment.Start)
             )
 
-            ProfileImageWithEditor()
+            ProfileImageWithEditor(imageUrl = user?.profileImageUrl ?: "")
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Input Fields
-            EditProfileTextField(label = "Name", value = name, onValueChange = { name = it })
-            EditProfileTextField(label = "Email Address", value = email, onValueChange = { email = it }, keyboardType = KeyboardType.Email)
-            EditProfileTextField(label = "User name", value = username, onValueChange = { username = it })
-            PasswordTextField(label = "Password", password = password, onPasswordChange = { password = it }, passwordVisible = passwordVisible, onPasswordVisibilityChange = { passwordVisible = it })
-            PhoneNumberField(label = "Phone number", phoneNumber = phoneNumber, onPhoneNumberChange = { phoneNumber = it })
+            // Simplified Input Fields
+            EditProfileTextField(
+                label = "Full Name",
+                value = name,
+                onValueChange = { name = it }
+            )
+
+            EditProfileTextField(
+                label = "Phone Number",
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                keyboardType = KeyboardType.Phone
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Button(
+                onClick = { /* Handle Save */ },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A60F5))
+            ) {
+                Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
@@ -118,58 +147,42 @@ fun EditProfileTopAppBar(onBackClicked: () -> Unit, onSaveClicked: () -> Unit) {
             IconButton(onClick = onBackClicked) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
             }
-            Spacer(modifier = Modifier.weight(1f))
-            // The checkmark is positioned absolutely in the original design,
-            // but for simplicity, placing it here. You can adjust as needed.
         }
     }
 }
 
 @Composable
-fun ProfileImageWithEditor() {
+fun ProfileImageWithEditor(imageUrl: String) {
     Box(contentAlignment = Alignment.Center) {
-
         Image(
-            painter = rememberAsyncImagePainter("https://i.insider.com/655e4e2c57f2723c21a316e6?width=700"),
+            painter = rememberAsyncImagePainter(
+                model = if (imageUrl.isEmpty()) R.drawable.baseline_person_24 else imageUrl
+            ),
             contentDescription = "Profile Image",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(120.dp)
                 .clip(CircleShape)
+                .background(Color.Gray.copy(alpha = 0.2f))
         )
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .offset(x = (-8).dp, y = (-8).dp)
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
                 .background(Color.White)
                 .padding(4.dp)
-                .clickable { /* TODO: Handle image change */ }
+                .clickable { /* TODO: Open Image Picker */ }
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.baseline_photo_camera_24), // You need to add a camera icon to your drawables
+                painter = painterResource(id = R.drawable.baseline_photo_camera_24),
                 contentDescription = "Change profile picture",
-                modifier = Modifier
-                    .size(20.dp)
-                    .align(Alignment.Center),
+                modifier = Modifier.size(20.dp).align(Alignment.Center),
                 tint = Color.Black
             )
         }
-
-        Icon(
-            imageVector = Icons.Default.Check,
-            contentDescription = "Save Changes",
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .offset(x = 100.dp, y = (-50).dp)
-                .size(36.dp)
-                .clickable { /* TODO: Handle save action */ },
-            tint = Color.Black
-        )
     }
 }
-
 
 @Composable
 fun EditProfileTextField(
@@ -179,122 +192,30 @@ fun EditProfileTextField(
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
-
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                unfocusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                focusedBorderColor = Color.Transparent,
+                focusedContainerColor = Color.Gray.copy(alpha = 0.1f),
+                unfocusedContainerColor = Color.Gray.copy(alpha = 0.1f),
+                focusedBorderColor = Color(0xFF3A60F5),
                 unfocusedBorderColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary
             ),
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
             singleLine = true
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
     }
 }
-
-@Composable
-fun PasswordTextField(
-    label: String,
-    password: String,
-    onPasswordChange: (String) -> Unit,
-    passwordVisible: Boolean,
-    onPasswordVisibilityChange: (Boolean) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = onPasswordChange,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            trailingIcon = {
-
-                val image = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff
-                val description = if (passwordVisible) "Hide password" else "Show password"
-                IconButton(onClick = { onPasswordVisibilityChange(!passwordVisible) }) {
-                    Icon(imageVector = image, description)
-                }
-            },
-
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                unfocusedContainerColor = Color.Gray.copy(alpha = 0.15f),
-                focusedBorderColor = Color.Transparent,
-                unfocusedBorderColor = Color.Transparent,
-                cursorColor = MaterialTheme.colorScheme.primary,
-                focusedTrailingIconColor = Color.Black,
-                unfocusedTrailingIconColor = Color.Gray
-            ),
-            textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
-            singleLine = true
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
-@Composable
-fun PhoneNumberField(
-    label: String,
-    phoneNumber: String,
-    onPhoneNumberChange: (String) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min)
-                .background(Color.Gray.copy(alpha = 0.15f), RoundedCornerShape(16.dp)),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                    .clickable { /* TODO: Show country code picker */ },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("+977", fontSize = 16.sp)
-                Icon(Icons.Default.KeyboardArrowDown, contentDescription = "Select country code")
-            }
-
-
-            Box(
-                modifier = Modifier
-                    .width(1.dp)
-                    .fillMaxHeight()
-                    .padding(vertical = 8.dp)
-                    .background(Color.Gray.copy(alpha = 0.5f))
-            )
-
-
-            BasicTextField(
-                value = phoneNumber,
-                onValueChange = onPhoneNumberChange,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 14.dp)
-                    .fillMaxWidth(),
-                textStyle = LocalTextStyle.current.copy(fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface),
-                singleLine = true
-            )
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
-
 
 @Preview(showBackground = true)
 @Composable
