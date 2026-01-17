@@ -158,7 +158,17 @@ fun ProfileScreenBody(userViewModel: UserViewModel, dashboardViewModel: Dashboar
                             label = "Log Out",
                             onClick = {
                                 userViewModel.logOut { success, _ ->
-                                    if(success) (context as? android.app.Activity)?.finish()
+                                    if (success) {
+                                        // 1. Create intent for LoginActivity
+                                        val intent = Intent(context, com.example.roomsathi.view.LoginUi::class.java)
+
+                                        // 2. Clear the backstack so the user can't go back to the dashboard
+                                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+                                        // 3. Start Activity and Finish current one
+                                        context.startActivity(intent)
+                                        (context as? android.app.Activity)?.finish()
+                                    }
                                 }
                             },
                             isLogout = true

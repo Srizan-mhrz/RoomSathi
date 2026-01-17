@@ -2,6 +2,7 @@ package com.example.roomsathi.view
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -120,13 +121,36 @@ fun DashboardBody() {
     val favoriteIds by favoriteViewModel.favoriteIds.observeAsState(emptyList())
     val currentUser = userViewModel.getCurrentUser()
 
+    var backPressedTime by remember { mutableLongStateOf(0L) }
+
     // Fetch favorites once the user is known
     LaunchedEffect(currentUser) {
         currentUser?.uid?.let { uid ->
             favoriteViewModel.getFavorites(uid)
         }
     }
-
+    BackHandler {
+        // If the user is viewing property details, back should just close details
+        if (selectedProperty != null) {
+            selectedProperty = null
+        }
+        // If the user is on any tab other than Home, back should go to Home
+        else if (selectedIndex != 0) {
+            selectedIndex = 0
+        }
+        // If on Home, check for double tap
+        else {
+            val currentTime = System.currentTimeMillis()
+            if (backPressedTime + 2000 > currentTime) {
+                // Second tap within 2 seconds: Exit app
+                (context as? android.app.Activity)?.finish()
+            } else {
+                // First tap: Show Toast
+                android.widget.Toast.makeText(context, "Press back again to exit", android.widget.Toast.LENGTH_SHORT).show()
+                backPressedTime = currentTime
+            }
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
