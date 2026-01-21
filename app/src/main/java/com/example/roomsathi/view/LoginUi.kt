@@ -1,8 +1,6 @@
 package com.example.roomsathi.view
 
-
 import android.app.Activity
-import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -11,233 +9,210 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-import com.example.roomsathi.ProfileScreenBody
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.roomsathi.R
 import com.example.roomsathi.repository.UserRepoImpl
+import com.example.roomsathi.ui.theme.LightBlue
+import com.example.roomsathi.ui.theme.Yellow
 import com.example.roomsathi.viewmodel.UserViewModel
-
 
 class LoginUi : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            Login()
+            LoginScreen()
         }
     }
 }
+
 @Composable
-fun Login() {
+fun LoginScreen() {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var rememberMe by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
-    val userViewModel = remember { UserViewModel(UserRepoImpl()) }
-    val activity= context as? Activity
+    val userViewModel: UserViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return UserViewModel(UserRepoImpl()) as T
+            }
+        }
+    )
 
-
-
-    Scaffold { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LightBlue)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(Color.White),
-            horizontalAlignment = Alignment.CenterHorizontally,
-
+                .statusBarsPadding()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Spacer(modifier = Modifier.height(60.dp))
 
+            // Brand Header
             Icon(
                 imageVector = Icons.Default.Home,
                 contentDescription = "Home Icon",
-                tint = Color.Black,
-                modifier = Modifier.size(24.dp)
+                tint = Yellow,
+                modifier = Modifier.size(48.dp)
             )
 
             Text(
                 text = "Room Sathi",
-                style = TextStyle(
-                    fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                color = Color.White,
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             Text(
                 text = "Welcome Back!",
-                style = TextStyle(
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.SemiBold
             )
-
-            Spacer(modifier = Modifier.height(20.dp))
 
             Text(
                 text = "Sign in to continue your search for your perfect room",
-                style = TextStyle(
-                    color = Color.Gray.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center,
-                    fontSize = 14.sp
-                ),
-                modifier = Modifier.padding(horizontal = 20.dp)
+                color = Color.White.copy(alpha = 0.6f),
+                textAlign = TextAlign.Center,
+                fontSize = 14.sp,
+                modifier = Modifier.padding(top = 8.dp, bottom = 40.dp)
             )
-            Spacer(modifier = Modifier.height(20.dp))
 
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = {data ->
-                    email = data
-                },
-                label = {
-                    Text("Email Address")
-                },
-                shape = RoundedCornerShape(12.dp),
-                keyboardOptions= KeyboardOptions(
-                    keyboardType = KeyboardType.Email
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 15.dp),
-                placeholder = {
-                    Text( "you@gmail.com")
-
-                }
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            OutlinedTextField(
-                value = password,
-                onValueChange = {data->
-                    password=data
-                }, label = {
-                    Text("Password")
-                },
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 15.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-
+            // Glass Container for Inputs
+            GlassSurface(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color.White.copy(alpha = 0.1f)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = rememberMe,
-                        onCheckedChange = {rememberMe = it}
-
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    ThemedInputField(
+                        label = "Email Address",
+                        value = email,
+                        icon = R.drawable.outline_alternate_email_24,
+                        keyboardType = KeyboardType.Email,
+                        onValueChange = { email = it }
                     )
-                    Text("Remember me")
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ThemedInputField(
+                        label = "Password",
+                        value = password,
+                        icon = R.drawable.outline_key_vertical_24, // Substitute for lock icon if available
+                        keyboardType = KeyboardType.Password,
+                        isPassword = true,
+                        isPasswordVisible = passwordVisible,
+                        onVisibilityChange = { passwordVisible = !passwordVisible },
+                        onValueChange = { password = it }
+                    )
                 }
-                Text(
-                    "Forgot password?", style = TextStyle(
-                        color = Color.Black.copy(0.6f),
-                        fontWeight = FontWeight.SemiBold
+            }
 
-                    )
+            // Forgot Password Link
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Text(
+                    text = "Forgot password?",
+                    color = Yellow,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.clickable {  val intent = Intent(context, ForgotPassword::class.java)
+                        context.startActivity(intent)
+                    }
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
 
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // Action Button
             Button(
-                onClick = {  userViewModel.login(email, password) { success, msg ->
-                    if (success) {
-                        val intent = Intent(context, DashboardActivity::class.java)
-
-                        // --- ADD THESE FLAGS ---
-                        // This clears the LoginActivity from the memory/backstack
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-
-                        context.startActivity(intent)
-
-                        // Optional: Cast context to Activity and finish it
-                        (context as? android.app.Activity)?.finish()
+                onClick = {
+                    if (email.isEmpty() || password.isEmpty()) {
+                        Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                        userViewModel.login(email, password) { success, msg ->
+                            if (success) {
+                                val intent = Intent(context, DashboardActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                }
+                                context.startActivity(intent)
+                                (context as? Activity)?.finish()
+                            } else {
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                            }
+                        }
                     }
-                }},
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth().height(100.dp)
-                    .padding(horizontal = 12.dp, vertical = 20.dp)
+                },
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
-                Text("Sign In")
+                Text(
+                    "SIGN IN",
+                    color = Color.Black,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 16.sp
+                )
             }
-            Spacer(modifier = Modifier.height(24.dp))
 
-            // --- NEW: SIGN UP SECTION ---
+            Spacer(modifier = Modifier.weight(1f)) // Push Sign Up section to bottom
+
+            // Sign Up Footer
             Row(
-                modifier = Modifier.padding(bottom = 20.dp),
+                modifier = Modifier.padding(vertical = 32.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Don't have an account? ",
-                    color = Color.Gray,
+                    color = Color.White.copy(alpha = 0.7f),
                     fontSize = 14.sp
                 )
                 Text(
                     text = "Sign Up",
                     modifier = Modifier.clickable {
-
-                        val intent = Intent(context, RegistrationActivity::class.java)
-                        context.startActivity(intent)
+                        context.startActivity(Intent(context, RegistrationActivity::class.java))
                     },
-                    style = TextStyle(
-                        color = Color.Black, // Or use your Yellow theme color
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 14.sp
-                    )
+                    color = Yellow,
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 14.sp
                 )
             }
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun Greeting() {
-    Login()
-
 }

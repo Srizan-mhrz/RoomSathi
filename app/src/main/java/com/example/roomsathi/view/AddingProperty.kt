@@ -1,8 +1,11 @@
 package com.example.roomsathi.view
 
 import android.net.Uri
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,18 +16,19 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.roomsathi.ui.theme.*
 import com.example.roomsathi.viewmodel.AddPropertyUiState
 import com.example.roomsathi.viewmodel.AddingPropertyViewModel
 
@@ -34,6 +38,7 @@ fun AddingPropertyScreen(
 ) {
     val viewModel: AddingPropertyViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     var title by remember { mutableStateOf("") }
     var location by remember { mutableStateOf("") }
@@ -41,161 +46,155 @@ fun AddingPropertyScreen(
     var cost by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var successMessage by remember { mutableStateOf<String?>(null) }
-
-
     var selectedImageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
-
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
-    ) { uris ->
-        selectedImageUris = uris
-    }
+    ) { uris -> selectedImageUris = uris }
 
-    when (val state = uiState) {
-        is AddPropertyUiState.Error -> { errorMessage = state.message }
-        is AddPropertyUiState.Success -> {
-            successMessage = state.message
-            onAddSuccess(state.propertyId)
-            viewModel.resetState()
-        }
-        else -> {
-            errorMessage = null
-            successMessage = null
+    LaunchedEffect(uiState) {
+        when (val state = uiState) {
+            is AddPropertyUiState.Error -> { errorMessage = state.message }
+            is AddPropertyUiState.Success -> {
+                successMessage = state.message
+                onAddSuccess(state.propertyId)
+                viewModel.resetState()
+            }
+            else -> { errorMessage = null; successMessage = null }
         }
     }
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize()
-    ) { paddingValues ->
+    Box(modifier = Modifier.fillMaxSize().background(LightBlue)) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+                .statusBarsPadding()
+                .padding(horizontal = 20.dp)
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
             Text(
-                text = "Add a New Property",
-                style = MaterialTheme.typography.headlineMedium,
-                modifier = Modifier.padding(bottom = 24.dp)
+                text = "Add Property",
+                color = Color.White,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.align(Alignment.Start)
             )
 
-
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Title") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = location,
-                onValueChange = { location = it },
-                label = { Text("Location") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth().height(120.dp),
-                maxLines = 5
-            )
-            Spacer(Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = cost,
-                onValueChange = { newValue ->
-                    if (newValue.all { it.isDigit() }) {
-                        cost = newValue
-                    }
-                },
-                label = { Text("Cost per Month") },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                singleLine = true,
-                prefix = { Text("Rs. ") }
+            Text(
+                text = "Fill in the details to list your room",
+                color = Color.White.copy(alpha = 0.5f),
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.Start).padding(top = 4.dp, bottom = 32.dp)
             )
 
-            Spacer(Modifier.height(16.dp))
-
-
-            Button(
-                onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-            ) {
-                Text("Select Pictures from Gallery")
+            // Form Fields
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                PropertyInputField(title, { title = it }, "Property Title", "e.g. Modern Apartment")
+                PropertyInputField(location, { location = it }, "Location", "e.g. Kathmandu, Nepal")
+                PropertyInputField(description, { description = it }, "Description", "Features, rules, etc.", true)
+                PropertyInputField(cost, { if (it.all { c -> c.isDigit() }) cost = it }, "Cost per Month", "0000", false, KeyboardType.Number, "Rs. ")
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Pictures Section
+            Button(
+                onClick = { galleryLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth().height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f))
+            ) {
+                Icon(painterResource(id = com.example.roomsathi.R.drawable.baseline_add_24), null, tint = Yellow)
+                Spacer(Modifier.width(8.dp))
+                Text("Select Pictures (${selectedImageUris.size}/8)", color = Color.White)
+            }
 
             if (selectedImageUris.isNotEmpty()) {
-                Spacer(Modifier.height(8.dp))
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                Spacer(Modifier.height(12.dp))
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     items(selectedImageUris) { uri ->
                         AsyncImage(
                             model = uri,
                             contentDescription = null,
-                            modifier = Modifier
-                                .size(90.dp)
-                                .clip(RoundedCornerShape(8.dp))
-                                .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp)),
+                            modifier = Modifier.size(90.dp).clip(RoundedCornerShape(12.dp)).border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(40.dp))
 
+            // Status Messages
             if (uiState is AddPropertyUiState.Loading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Yellow)
+                Spacer(modifier = Modifier.height(16.dp))
             } else {
-                errorMessage?.let {
-                    Text(text = it, color = MaterialTheme.colorScheme.error)
-                }
-                successMessage?.let {
-                    Text(text = it, color = MaterialTheme.colorScheme.primary)
-                }
+                errorMessage?.let { Text(it, color = Color.Red, fontSize = 13.sp, modifier = Modifier.padding(bottom = 12.dp)) }
+                successMessage?.let { Text(it, color = Yellow, fontSize = 13.sp, modifier = Modifier.padding(bottom = 12.dp)) }
 
-                Button(
-                    onClick = {
-                        val costDouble = cost.toDoubleOrNull() ?: 0.0
-
-
-
-                        viewModel.addProperty(
-                            title = title,
-                            location = location,
-                            description = description,
-                            cost = costDouble,
-                            imageUris = selectedImageUris
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-
-                    enabled = selectedImageUris.isNotEmpty() && selectedImageUris.size <= 8
+                // Action Buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text("Add Property")
+                    // Cancel Button Fixed
+                    OutlinedButton(
+                        onClick = { backDispatcher?.onBackPressed() },
+                        modifier = Modifier.weight(1f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                    ) {
+                        Text("CANCEL", fontWeight = FontWeight.Bold)
+                    }
+
+                    // Add Button
+                    Button(
+                        onClick = {
+                            val costDouble = cost.toDoubleOrNull() ?: 0.0
+                            viewModel.addProperty(title, location, description, costDouble, selectedImageUris)
+                        },
+                        modifier = Modifier.weight(1.5f).height(56.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Yellow,
+                            disabledContainerColor = Yellow.copy(alpha = 0.2f)
+                        ),
+                        enabled = title.isNotBlank() && cost.isNotBlank() && selectedImageUris.isNotEmpty()
+                    ) {
+                        Text("ADD PROPERTY", color = Color.Black, fontWeight = FontWeight.ExtraBold)
+                    }
                 }
             }
+            Spacer(modifier = Modifier.height(50.dp))
         }
     }
 }
 
-@Preview(showBackground = true)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddingPropertyScreenPreview() {
-    AddingPropertyScreen()
+fun PropertyInputField(
+    value: String, onValueChange: (String) -> Unit, label: String,
+    placeholder: String = "", isMultiline: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text, prefix: String? = null
+) {
+    TextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label, color = Yellow, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
+        placeholder = { Text(placeholder, color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
+        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.07f))
+            .then(if (isMultiline) Modifier.height(110.dp) else Modifier),
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+        prefix = prefix?.let { { Text(it, color = Color.White) } },
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
+            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
+            focusedIndicatorColor = Yellow, unfocusedIndicatorColor = Color.Transparent, cursorColor = Yellow
+        )
+    )
 }
