@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -55,32 +55,19 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
 
     LaunchedEffect(currentUser?.uid) {
         if (currentUser == null) return@LaunchedEffect
-
         val myChatsRef = database.child("user_chats").child(currentUser.uid)
-
         myChatsRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 userList.clear()
                 val chatPartnerIds = snapshot.children.mapNotNull { it.key }
-
                 chatPartnerIds.forEach { partnerId ->
                     database.child("users").child(partnerId)
                         .addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(userSnapshot: DataSnapshot) {
                                 val userName = userSnapshot.child("fullName").value?.toString() ?: "Unknown"
-                                // Fetch the actual profile image URL from your Firebase users node
                                 val profileImageUrl = userSnapshot.child("profileImageUrl").value?.toString() ?: ""
-
-                                // Avoid adding duplicates if the listener triggers again
                                 if (userList.none { it.uid == partnerId }) {
-                                    userList.add(
-                                        UserItemData(
-                                            uid = partnerId,
-                                            name = userName,
-                                            preview = "Tap to view messages",
-                                            imageUrl = profileImageUrl
-                                        )
-                                    )
+                                    userList.add(UserItemData(partnerId, userName, "Tap to view messages", profileImageUrl))
                                 }
                             }
                             override fun onCancelled(error: DatabaseError) {}
@@ -91,33 +78,48 @@ fun MessageBody(onChatClick: (UserItemData) -> Unit) {
         })
     }
 
-    Scaffold { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LightBlue) // Unified background
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .background(DarkBlue)
+                .statusBarsPadding()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp, horizontal = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Messages", color = White, fontWeight = FontWeight.Bold, fontSize = 20.sp)
-            }
+            // Header
+            Text(
+                text = "Messages",
+                color = Color.White,
+                fontWeight = FontWeight.ExtraBold,
+                fontSize = 28.sp,
+                modifier = Modifier.padding(24.dp)
+            )
 
             if (userList.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No conversations yet", color = White.copy(alpha = 0.5f))
+                    Text("No conversations yet", color = Color.White.copy(alpha = 0.4f))
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                // One large Glass Container for the whole list looks much cleaner
+                GlassSurface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp),
+                    containerColor = Color.White.copy(alpha = 0.08f)
                 ) {
-                    items(userList) { user ->
-                        MessageRow(user) { onChatClick(user) }
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(userList) { user ->
+                            MessageRow(user) { onChatClick(user) }
+                            // Subtle divider that doesn't scream for attention
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                thickness = 0.5.dp,
+                                color = Color.White.copy(alpha = 0.1f)
+                            )
+                        }
                     }
                 }
             }
@@ -131,39 +133,61 @@ fun MessageRow(user: UserItemData, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 20.dp), // Increased vertical padding for "air"
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // CHANGED: Use AsyncImage to load the URL from Cloudinary/Firebase
-        AsyncImage(
-            model = user.imageUrl,
-            contentDescription = "Profile Picture",
-            modifier = Modifier
-                .size(55.dp)
-                .clip(CircleShape)
-                .background(White.copy(alpha = 0.1f)),
-            contentScale = ContentScale.Crop,
-            // Shows a default icon while loading or if the URL is empty
-            placeholder = painterResource(R.drawable.baseline_person_24),
-            error = painterResource(R.drawable.baseline_person_24)
-        )
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                user.name,
-                style = TextStyle(color = White, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Box {
+            AsyncImage(
+                model = user.imageUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(54.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.baseline_person_24),
+                error = painterResource(R.drawable.baseline_person_24)
             )
-            Text(
-                user.preview,
-                style = TextStyle(color = White.copy(alpha = 0.7f), fontSize = 12.sp)
+            // Tiny "online" dot indicator for the theme
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(Yellow)
+                    .align(Alignment.BottomEnd)
+                    .padding(2.dp)
             )
         }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = user.name,
+                style = TextStyle(
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            Text(
+                text = user.preview,
+                style = TextStyle(
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 13.sp
+                )
+            )
+        }
+
+        Icon(
+            painter = painterResource(R.drawable.outline_keyboard_arrow_right_24),
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.3f),
+            modifier = Modifier.size(12.dp) // Subtle indicator
+        )
     }
 }
 
-// Updated Data model to use String for the image URL
 data class UserItemData(
     val uid: String,
     val name: String,
