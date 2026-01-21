@@ -149,7 +149,9 @@ fun LoginScreen() {
                     color = Yellow,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable { /* TODO: Forgot Password */ }
+                    modifier = Modifier.clickable {  val intent = Intent(context, ForgotPassword::class.java)
+                        context.startActivity(intent)
+                    }
                 )
             }
 
