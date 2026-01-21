@@ -35,7 +35,7 @@
         <activity android:name=".ProfileActivity" android:exported="false" />
         <activity android:name=".ProfileScreen" android:exported="false" />
         <activity android:name=".view.SeeAllActivity" android:exported="false" />
-
+        <activity android:name=".view.ForgotPassword" android:exported="false" />
         <activity
             android:name=".view.InboxActivity"
             android:exported="false"
