@@ -37,6 +37,8 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.example.roomsathi.R
 import com.example.roomsathi.repository.UserRepoImpl
+import com.example.roomsathi.ui.theme.LightBlue
+import com.example.roomsathi.ui.theme.Yellow
 import com.example.roomsathi.viewmodel.UserViewModel
 
 class EditProfileActivity : ComponentActivity() {
@@ -85,7 +87,7 @@ fun EditProfileScreen(onBack: () -> Unit) {
             EditProfileTopAppBar(onBackClicked = onBack)
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().background(LightBlue)) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -96,6 +98,8 @@ fun EditProfileScreen(onBack: () -> Unit) {
             ) {
                 Text(
                     text = "Edit Profile",
+                    color = Color.White.copy(alpha = 0.9f),
+
                     style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.padding(vertical = 16.dp).align(Alignment.Start)
                 )
@@ -125,13 +129,14 @@ fun EditProfileScreen(onBack: () -> Unit) {
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3A60F5)),
+                    colors = ButtonDefaults.buttonColors(containerColor = Yellow),
                     enabled = !isUpdating
                 ) {
                     if (isUpdating) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
-                        Text("Save Changes", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                        Text("Save Changes",color = Color.Black,
+                            fontSize = 16.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }
