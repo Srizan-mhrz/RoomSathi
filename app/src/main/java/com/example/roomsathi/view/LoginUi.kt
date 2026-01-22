@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.roomsathi.R
 import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.ui.theme.LightBlue
+import com.example.roomsathi.ui.theme.White
 import com.example.roomsathi.ui.theme.Yellow
 import com.example.roomsathi.viewmodel.UserViewModel
 
@@ -65,6 +66,8 @@ fun LoginScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(LightBlue)
+            .imePadding()
+
     ) {
         Column(
             modifier = Modifier
@@ -80,7 +83,7 @@ fun LoginScreen() {
             Icon(
                 imageVector = Icons.Default.Home,
                 contentDescription = "Home Icon",
-                tint = Yellow,
+                tint = White,
                 modifier = Modifier.size(48.dp)
             )
 
