@@ -240,8 +240,10 @@ fun PropertyInputField(
     onValueChange: (String) -> Unit,
     label: String,
     icon: Int,
-    placeholder: String = "", isMultiline: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text, prefix: String? = null
+    placeholder: String = "",
+    isMultiline: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    prefix: String? = null
 ) {
     TextField(
         value = value,
@@ -250,20 +252,40 @@ fun PropertyInputField(
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
-                tint = Yellow,
-                modifier = Modifier.size(20.dp)
+                tint = Yellow.copy(alpha = 0.9f), // Soften the yellow slightly
+                modifier = Modifier.size(22.dp)
             )
         },
-        label = { Text(label, color = Yellow, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
-        placeholder = { Text(placeholder, color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.07f))
-            .then(if (isMultiline) Modifier.height(110.dp) else Modifier),
+        label = {
+            Text(
+                text = label,
+                color = Yellow,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        placeholder = {
+            Text(
+                text = placeholder,
+                color = Color.White.copy(alpha = 0.35f),
+                fontSize = 14.sp
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp)) // Slightly rounder for modern look
+            .background(Color.White.copy(alpha = 0.05f)) // Very subtle inner tint
+            .then(if (isMultiline) Modifier.height(130.dp) else Modifier), // Increased height
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        prefix = prefix?.let { { Text(it, color = Color.White) } },
+        prefix = prefix?.let { { Text(it, color = Color.White.copy(alpha = 0.7f)) } },
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
-            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-            focusedIndicatorColor = Yellow, unfocusedIndicatorColor = Color.Transparent, cursorColor = Yellow
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedIndicatorColor = Yellow,
+            unfocusedIndicatorColor = Color.White.copy(alpha = 0.1f), // Subtle underline when not focused
+            cursorColor = Yellow
         ),
         singleLine = !isMultiline
     )
