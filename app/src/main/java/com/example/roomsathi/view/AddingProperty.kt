@@ -211,6 +211,14 @@ fun PropertyInputField(
     TextField(
         value = value,
         onValueChange = onValueChange,
+        leadingIcon = {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                tint = Yellow,
+                modifier = Modifier.size(20.dp)
+            )
+        },
         label = { Text(label, color = Yellow, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
         placeholder = { Text(placeholder, color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.07f))
@@ -221,6 +229,7 @@ fun PropertyInputField(
             focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
             focusedTextColor = Color.White, unfocusedTextColor = Color.White,
             focusedIndicatorColor = Yellow, unfocusedIndicatorColor = Color.Transparent, cursorColor = Yellow
-        )
+        ),
+        singleLine = !isMultiline
     )
 }
