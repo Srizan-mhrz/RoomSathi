@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,30 +65,47 @@ fun AddingPropertyScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(LightBlue)) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LightBlue)
+            .imePadding() // CRITICAL: This pushes the UI up when keyboard opens
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Add Property",
-                color = Color.White,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.align(Alignment.Start)
-            )
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                IconButton(
+                    onClick = { backDispatcher?.onBackPressed() },
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = "Add Property",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
             Text(
                 text = "Fill in the details to list your room",
                 color = Color.White.copy(alpha = 0.5f),
                 fontSize = 14.sp,
-                modifier = Modifier.align(Alignment.Start).padding(top = 4.dp, bottom = 32.dp)
+                modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
 
             // Form Fields
