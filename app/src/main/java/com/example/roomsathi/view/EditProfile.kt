@@ -82,64 +82,45 @@ fun EditProfileScreen(onBack: () -> Unit) {
         selectedImageUri = uri
     }
 
-    Scaffold(
-        topBar = {
-            EditProfileTopAppBar(onBackClicked = onBack)
-        }
-    ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().background(LightBlue)) {
-            Column(
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LightBlue)
+            .imePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Header Section
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp)
             ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clickable { onBack() }
+                        .align(Alignment.CenterStart)
+                )
                 Text(
                     text = "Edit Profile",
-                    color = Color.White.copy(alpha = 0.9f),
-
-                    style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.padding(vertical = 16.dp).align(Alignment.Start)
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
                 )
-
-                // Profile Image Section
-                ProfileImageWithEditor(
-                    // Show picked image if exists, otherwise show firebase image
-                    displayImage = selectedImageUri ?: user?.profileImageUrl ?: "",
-                    onImageClick = { launcher.launch("image/*") }
-                )
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                EditProfileTextField(label = "Full Name", value = name, onValueChange = { name = it })
-                EditProfileTextField(label = "Phone Number", value = phoneNumber, onValueChange = { phoneNumber = it }, keyboardType = KeyboardType.Phone)
-
-                Spacer(modifier = Modifier.height(40.dp))
-
-                Button(
-                    onClick = {
-                        isUpdating = true
-                        userViewModel.updateUserProfile(name, phoneNumber, selectedImageUri) { success, msg ->
-                            isUpdating = false
-                            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
-                            if (success) onBack()
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = Yellow),
-                    enabled = !isUpdating
-                ) {
-                    if (isUpdating) {
-                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                    } else {
-                        Text("Save Changes",color = Color.Black,
-                            fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
             }
+            Spacer(modifier = Modifier.height(30.dp))
+            // ... Next parts go here
         }
     }
 }
