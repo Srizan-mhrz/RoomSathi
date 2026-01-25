@@ -109,11 +109,18 @@ fun AddingPropertyScreen(
             )
 
             // Form Fields
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                PropertyInputField(title, { title = it }, "Property Title", "e.g. Modern Apartment")
-                PropertyInputField(location, { location = it }, "Location", "e.g. Kathmandu, Nepal")
-                PropertyInputField(description, { description = it }, "Description", "Features, rules, etc.", true)
-                PropertyInputField(cost, { if (it.all { c -> c.isDigit() }) cost = it }, "Cost per Month", "0000", false, KeyboardType.Number, "Rs. ")
+            // Replace your "Form Fields" Column with this:
+            GlassSurface(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color.White.copy(alpha = 0.1f)
+            ) {
+                Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    // Using your app's custom ThemedInputField (pass R.drawable icons as needed)
+                    PropertyInputField(title, { title = it }, "Property Title", icon = com.example.roomsathi.R.drawable.baseline_home_24)
+                    PropertyInputField(location, { location = it }, "Location", icon = com.example.roomsathi.R.drawable.baseline_location_on_24)
+                    PropertyInputField(description, { description = it }, "Description", icon = com.example.roomsathi.R.drawable.baseline_description_24)
+                    PropertyInputField(cost, { if (it.all { c -> c.isDigit() }) cost = it }, "Cost (Monthly)", icon = com.example.roomsathi.R.drawable.outline_attach_money_24, keyboardType = KeyboardType.Number)
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -196,7 +203,10 @@ fun AddingPropertyScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertyInputField(
-    value: String, onValueChange: (String) -> Unit, label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: Int,
     placeholder: String = "", isMultiline: Boolean = false,
     keyboardType: KeyboardType = KeyboardType.Text, prefix: String? = null
 ) {
