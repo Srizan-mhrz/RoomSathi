@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
@@ -40,6 +41,8 @@ import com.example.roomsathi.repository.UserRepoImpl
 import com.example.roomsathi.ui.theme.LightBlue
 import com.example.roomsathi.ui.theme.Yellow
 import com.example.roomsathi.viewmodel.UserViewModel
+import androidx.compose.ui.res.painterResource
+
 
 class EditProfileActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -120,7 +123,31 @@ fun EditProfileScreen(onBack: () -> Unit) {
                 )
             }
             Spacer(modifier = Modifier.height(30.dp))
-            // ... Next parts go here
+
+            // Replace the old text fields with this block:
+            GlassSurface(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color.White.copy(alpha = 0.1f)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    ThemedInputField(
+                        label = "Full Name",
+                        value = name,
+                        icon = R.drawable.baseline_person_24,
+                        onValueChange = { name = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    ThemedInputField(
+                        label = "Phone Number",
+                        value = phoneNumber,
+                        icon = R.drawable.outline_call_24,
+                        keyboardType = KeyboardType.Phone,
+                        onValueChange = { phoneNumber = it }
+                    )
+                }
+            }
         }
     }
 }
