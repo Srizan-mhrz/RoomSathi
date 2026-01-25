@@ -43,22 +43,27 @@ fun SavedScreen(
         }
     }
 
+    // Inside SavedScreen replace the main Column and Header text with:
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(LightBlue)
-            .padding(16.dp)
+            .statusBarsPadding() // IMMERSIVE SUPPORT
+            .padding(horizontal = 24.dp) // UNIFIED PADDING
     ) {
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
             text = "Saved Properties",
-            style = TextStyle(
-                color = Color.White,
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
-            )
+            color = Color.White,
+            fontSize = 28.sp,
+            fontWeight = FontWeight.ExtraBold,
+            modifier = Modifier.padding(vertical = 12.dp)
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // ... logic for filtering remains the same
 
         if (savedProperties.isEmpty()) {
             Box(
