@@ -116,10 +116,32 @@ fun AddingPropertyScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     // Using your app's custom ThemedInputField (pass R.drawable icons as needed)
-                    PropertyInputField(title, { title = it }, "Property Title", icon = com.example.roomsathi.R.drawable.baseline_home_24)
-                    PropertyInputField(location, { location = it }, "Location", icon = com.example.roomsathi.R.drawable.baseline_location_on_24)
-                    PropertyInputField(description, { description = it }, "Description", icon = com.example.roomsathi.R.drawable.baseline_description_24)
-                    PropertyInputField(cost, { if (it.all { c -> c.isDigit() }) cost = it }, "Cost (Monthly)", icon = com.example.roomsathi.R.drawable.outline_attach_money_24, keyboardType = KeyboardType.Number)
+                    PropertyInputField(
+                        title,
+                        { title = it },
+                        "Property Title",
+                        icon = com.example.roomsathi.R.drawable.baseline_home_24,
+                        placeholder = "e.g. Modern Apartment")
+                    PropertyInputField(
+                        location,
+                        { location = it },
+                        "Location", icon = com.example.roomsathi.R.drawable.baseline_location_on_24,
+                        placeholder = "e.g. Kathmandu, Nepal")
+                    PropertyInputField(
+                        description,
+                        { description = it },
+                        "Description",
+                        icon = com.example.roomsathi.R.drawable.baseline_description_24,
+                        placeholder = "e.g. Feature of the room",
+                        isMultiline = true)
+                    PropertyInputField(
+                        cost,
+                        { if (it.all { c -> c.isDigit() }) cost = it },
+                        "Cost (Monthly)",
+                        icon = com.example.roomsathi.R.drawable.outline_attach_money_24,
+                        placeholder = "0000",
+                        keyboardType = KeyboardType.Number,
+                        prefix = "Rs. ")
                 }
             }
 
