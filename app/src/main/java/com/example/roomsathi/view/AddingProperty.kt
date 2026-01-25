@@ -128,13 +128,14 @@ fun AddingPropertyScreen(
             // Pictures Section
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f))
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.15f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
             ) {
-                Icon(painterResource(id = com.example.roomsathi.R.drawable.baseline_add_24), null, tint = Yellow)
-                Spacer(Modifier.width(8.dp))
-                Text("Select Pictures (${selectedImageUris.size}/8)", color = Color.White)
+                Icon(painterResource(id = com.example.roomsathi.R.drawable.baseline_add_photo_alternate_24), null, tint = Yellow)
+                Spacer(Modifier.width(12.dp))
+                Text("Add Photos (${selectedImageUris.size}/8)", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
             if (selectedImageUris.isNotEmpty()) {
@@ -163,7 +164,7 @@ fun AddingPropertyScreen(
 
                 // Action Buttons
                 Row(
-                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Cancel Button Fixed
@@ -171,10 +172,9 @@ fun AddingPropertyScreen(
                         onClick = { backDispatcher?.onBackPressed() },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
                     ) {
-                        Text("CANCEL", fontWeight = FontWeight.Bold)
+                        Text("CANCEL", color = Color.White, fontWeight = FontWeight.Bold)
                     }
 
                     // Add Button
@@ -185,10 +185,8 @@ fun AddingPropertyScreen(
                         },
                         modifier = Modifier.weight(1.5f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Yellow,
-                            disabledContainerColor = Yellow.copy(alpha = 0.2f)
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
                         enabled = title.isNotBlank() && cost.isNotBlank() && selectedImageUris.isNotEmpty()
                     ) {
                         Text("ADD PROPERTY", color = Color.Black, fontWeight = FontWeight.ExtraBold)
