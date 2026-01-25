@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -148,6 +149,37 @@ fun EditProfileScreen(onBack: () -> Unit) {
                     )
                 }
             }
+            Spacer(modifier = Modifier.height(40.dp))
+            Button(
+                onClick = {
+                    isUpdating = true
+                    userViewModel.updateUserProfile(name, phoneNumber, selectedImageUri) { success, msg ->
+                        isUpdating = false
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                        if (success) onBack()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
+                enabled = !isUpdating
+            ) {
+                if (isUpdating) {
+                    CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
+                } else {
+                    Text(
+                        "SAVE CHANGES",
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -156,76 +188,33 @@ fun EditProfileScreen(onBack: () -> Unit) {
 fun ProfileImageWithEditor(displayImage: Any, onImageClick: () -> Unit) {
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier.clickable { onImageClick() }
+        modifier = Modifier.size(130.dp)
+            .clickable { onImageClick() }
     ) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = 0.1f))
+            .border(2.dp, Color.White.copy(alpha = 0.2f), CircleShape))
         Image(
-            painter = rememberAsyncImagePainter(
-                model = if (displayImage == "") R.drawable.baseline_person_24 else displayImage
-            ),
+            painter = rememberAsyncImagePainter(model = if (displayImage == "" || displayImage == null) R.drawable.baseline_person_24 else displayImage),
             contentDescription = "Profile Image",
             contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(120.dp)
-                .clip(CircleShape)
-                .background(Color.Gray.copy(alpha = 0.2f))
+            modifier = Modifier.size(115.dp).clip(CircleShape)
         )
-        // Camera Overlay
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.White)
-                .padding(4.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_photo_camera_24),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp).align(Alignment.Center),
-                tint = Color.Black
-            )
+        Box(modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(Yellow)
+            .border(2.dp, LightBlue, CircleShape)) {
+            Icon(painter = painterResource(id = R.drawable.baseline_photo_camera_24)
+                , contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .align(Alignment.Center), tint = Color.Black)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditProfileTopAppBar(onBackClicked: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(60.dp)
-            .background(brush = Brush.linearGradient(colors = listOf(Color(0xFF3A60F5), Color(0xFF5D85F6))))
-    ) {
-        IconButton(onClick = onBackClicked, modifier = Modifier.align(Alignment.CenterStart)) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-        }
-    }
-}
 
-@Composable
-fun EditProfileTextField(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    keyboardType: KeyboardType = KeyboardType.Text
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(text = label, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.Gray.copy(alpha = 0.1f),
-                unfocusedContainerColor = Color.Gray.copy(alpha = 0.1f),
-                focusedBorderColor = Color(0xFF3A60F5),
-                unfocusedBorderColor = Color.Transparent,
-            ),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            singleLine = true
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-    }
-}
