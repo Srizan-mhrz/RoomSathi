@@ -1,296 +1,333 @@
 package com.example.roomsathi.view
 
+import android.app.Activity
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Button
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.roomsathi.R
-import com.example.roomsathi.view.ui.theme.RoomSathiTheme
+import com.example.roomsathi.model.UserModel
+import com.example.roomsathi.repository.UserRepoImpl
+import com.example.roomsathi.ui.theme.LightBlue
+import com.example.roomsathi.ui.theme.Yellow
+import com.example.roomsathi.viewmodel.UserViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 class RegistrationActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-
-                RegistrationScreen()
-
+            RegistrationScreen()
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegistrationScreen(){
+fun RegistrationScreen() {
+    val context = LocalContext.current
+    val activity = context as? Activity
 
+    // Consistent ViewModel initialization
+    val userViewModel: UserViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return UserViewModel(UserRepoImpl()) as T
+            }
+        }
+    )
+
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
     var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
-    var confirmPasswordVisibility by remember { mutableStateOf(false) }
+    var isUploading by remember { mutableStateOf(false) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Sign Up") },
-                navigationIcon = {
-                    IconButton(onClick = { /* TODO: Handle back navigation */ }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.surface
-    ){ innerPadding ->
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? -> imageUri = uri }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LightBlue)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .statusBarsPadding()
                 .padding(horizontal = 24.dp)
-                // This Make the column scrollable to avoid overflow on small screens
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
-            Spacer(Modifier.height(16.dp))
-
-            Text(
-                text = "Create Your Account",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(Modifier.height(8.dp))
-
-            Text(
-                text = "Please fill in the required information to create your account.",
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(Modifier.height(32.dp))
-
-
-            RegistrationInputField(label = "Full Name", value = fullName, onValueChange = { fullName = it }, keyboardType = KeyboardType.Text)
-            Spacer(Modifier.height(16.dp))
-            RegistrationInputField(label = "Phone Number", value = phoneNumber, onValueChange = { phoneNumber = it }, keyboardType = KeyboardType.Phone)
-            Spacer(Modifier.height(16.dp))
-            RegistrationInputField(label = "Email", value = email, onValueChange = { email = it }, keyboardType = KeyboardType.Email)
-            Spacer(Modifier.height(16.dp))
-            RegistrationInputField(
-                label = "Password",
-                value = password,
-                onValueChange = { password = it },
-                keyboardType = KeyboardType.Password,
-                isPassword = true,
-                isPasswordVisible = passwordVisibility,
-                onVisibilityChange = { passwordVisibility = !passwordVisibility }
-            )
-            Spacer(Modifier.height(16.dp))
-            RegistrationInputField(
-                label = "Confirm Password",
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                keyboardType = KeyboardType.Password,
-                isPassword = true,
-                isPasswordVisible = confirmPasswordVisibility,
-                onVisibilityChange = { confirmPasswordVisibility = !confirmPasswordVisibility },
-                isError = confirmPassword.isNotEmpty() && password != confirmPassword
-            )
-
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                ClickableText(
-                    text = AnnotatedString("Forgot Password?"),
-                    onClick = { /* TODO: Navigate to Forgot Password screen */ },
-                    style = TextStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp
-                    ),
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Spacer(Modifier.height(32.dp))
-
-
-            Button(
-                onClick = { /* TODO: Handle registration logic */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("SIGN UP", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            }
-
-            Spacer(Modifier.height(24.dp))
-
+        ) {
+            // --- Custom Top Bar ---
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Divider(modifier = Modifier.weight(1f))
-                Text(
-                    text = "Or continue with",
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Divider(modifier = Modifier.weight(1f))
-            }
-
-            Spacer(Modifier.height(24.dp))
-
-
-            OutlinedButton(
-                onClick = { /* TODO: Handle Google Sign-In */ },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                    .padding(vertical = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.google),
-                        contentDescription = "Google logo",
-                        modifier = Modifier.size(24.dp)
+                IconButton(onClick = { activity?.finish() }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
                     )
-                    Text(
-                        text = "Sign in with Google",
-                        modifier = Modifier.padding(start = 12.dp),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Medium
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Create Account",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // --- Profile Image Picker (Themed) ---
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.1f))
+                    .border(2.dp, if (imageUri == null) Yellow.copy(alpha = 0.5f) else Yellow, CircleShape)
+                    .clickable { launcher.launch("image/*") },
+                contentAlignment = Alignment.Center
+            ) {
+                if (imageUri == null) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            Icons.Default.AddAPhoto,
+                            contentDescription = null,
+                            tint = Yellow,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text("Add Photo", color = Yellow, fontSize = 12.sp)
+                    }
+                } else {
+                    AsyncImage(
+                        model = imageUri,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
                     )
                 }
             }
-            Spacer(Modifier.height(16.dp))
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // --- Registration Form inside Glass ---
+            GlassSurface(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = Color.White.copy(alpha = 0.1f)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                    ThemedInputField(
+                        label = "Full Name",
+                        value = fullName,
+                        icon = R.drawable.baseline_person_24,
+                        onValueChange = { fullName = it }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    ThemedInputField(
+                        label = "Email Address",
+                        value = email,
+                        icon = R.drawable.outline_alternate_email_24,
+                        keyboardType = KeyboardType.Email,
+                        onValueChange = { email = it }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    ThemedInputField(
+                        label = "Phone Number",
+                        value = phoneNumber,
+                        icon = R.drawable.outline_contact_page_24, // Using location icon for consistency
+                        keyboardType = KeyboardType.Phone,
+                        onValueChange = { phoneNumber = it }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    ThemedInputField(
+                        label = "Password",
+                        value = password,
+                        icon = R.drawable.outline_key_vertical_24, // Use a lock icon if you have one
+                        keyboardType = KeyboardType.Password,
+                        isPassword = true,
+                        isPasswordVisible = passwordVisibility,
+                        onVisibilityChange = { passwordVisibility = !passwordVisibility },
+                        onValueChange = { password = it }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            // --- Sign Up Button ---
+            if (isUploading) {
+                CircularProgressIndicator(color = Yellow)
+            } else {
+                Button(
+                    onClick = {
+                        if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || phoneNumber.isEmpty()) {
+                            Toast.makeText(context, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                        } else if (imageUri == null) {
+                            Toast.makeText(context, "Profile picture is required", Toast.LENGTH_LONG).show()
+                        } else {
+                            isUploading = true
+                            userViewModel.register(email, password) { success, msg, userId ->
+                                if (success) {
+                                    userViewModel.uploadProfilePicture(imageUri!!) { uploadSuccess, uploadError, url ->
+                                        if (uploadSuccess) {
+                                            val model = UserModel(
+                                                userId = userId,
+                                                fullName = fullName,
+                                                phoneNumber = phoneNumber,
+                                                email = email,
+                                                profileImageUrl = url ?: "",
+                                                password = ""
+                                            )
+                                            userViewModel.addUserToDatabase(userId, model) { dbSuccess, dbMsg ->
+                                                isUploading = false
+                                                if (dbSuccess) {
+                                                    activity?.finish()
+                                                    Toast.makeText(context, "Welcome to RoomSathi!", Toast.LENGTH_SHORT).show()
+                                                } else {
+                                                    Toast.makeText(context, dbMsg, Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        } else {
+                                            isUploading = false
+                                            FirebaseAuth.getInstance().signOut()
+                                            Toast.makeText(context, "Upload failed: $uploadError", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                } else {
+                                    isUploading = false
+                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
+                ) {
+                    Text(
+                        "SIGN UP",
+                        color = Color.Black,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 16.sp
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
         }
     }
-
 }
 
-// Reusable composable for all registration text fields using OutlinedTextField
 @Composable
-fun RegistrationInputField(
+fun ThemedInputField(
     label: String,
     value: String,
-    onValueChange: (String) -> Unit,
-    keyboardType: KeyboardType,
+    icon: Int,
+    keyboardType: KeyboardType = KeyboardType.Text,
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
     onVisibilityChange: () -> Unit = {},
-    isError: Boolean = false
+    onValueChange: (String) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(bottom = 4.dp)
+            color = Color.White.copy(alpha = 0.7f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(start = 4.dp, bottom = 6.dp)
         )
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true,
-            isError = isError,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            visualTransformation = if (isPassword && !isPasswordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            shape = RoundedCornerShape(14.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White,
+                focusedBorderColor = Yellow,
+                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
+                cursorColor = Yellow,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+            ),
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = null,
+                    tint = Yellow,
+                    modifier = Modifier.size(20.dp)
+                )
+            },
             trailingIcon = {
                 if (isPassword) {
                     IconButton(onClick = onVisibilityChange) {
+                        val iconRes = if (isPasswordVisible)
+                            R.drawable.baseline_visibility_24
+                        else
+                            R.drawable.outline_visibility_off_24
                         Icon(
-                            painter = if (isPasswordVisible)
-                                painterResource(id = R.drawable.baseline_visibility_24)
-                            else
-                                painterResource(id = R.drawable.outline_visibility_off_24),
-                            contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                            painter = painterResource(iconRes),
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = 0.5f)
                         )
                     }
                 }
             },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-                cursorColor = MaterialTheme.colorScheme.primary
-            )
+            visualTransformation = if (isPassword && !isPasswordVisible)
+                PasswordVisualTransformation()
+            else
+                VisualTransformation.None,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            singleLine = true
         )
     }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun RegistrationScreenPreview(){
-
-        RegistrationScreen()
-
 }
