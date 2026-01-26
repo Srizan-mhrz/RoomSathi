@@ -14,6 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -64,38 +65,97 @@ fun AddingPropertyScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize().background(LightBlue)) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(LightBlue)
+            .imePadding() // CRITICAL: This pushes the UI up when keyboard opens
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
-                .padding(horizontal = 20.dp)
+                .padding(horizontal = 24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Add Property",
-                color = Color.White,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.ExtraBold,
-                modifier = Modifier.align(Alignment.Start)
-            )
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 16.dp)) {
+                IconButton(
+                    onClick = { backDispatcher?.onBackPressed() },
+                    modifier = Modifier.align(Alignment.CenterStart)
+                ) {
+                    Icon(
+                        imageVector = androidx.compose.material.icons.Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
+                    )
+                }
+                Text(
+                    text = "Add Property",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
             Text(
                 text = "Fill in the details to list your room",
                 color = Color.White.copy(alpha = 0.5f),
                 fontSize = 14.sp,
-                modifier = Modifier.align(Alignment.Start).padding(top = 4.dp, bottom = 32.dp)
+                modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
 
             // Form Fields
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                PropertyInputField(title, { title = it }, "Property Title", "e.g. Modern Apartment")
-                PropertyInputField(location, { location = it }, "Location", "e.g. Kathmandu, Nepal")
-                PropertyInputField(description, { description = it }, "Description", "Features, rules, etc.", true)
-                PropertyInputField(cost, { if (it.all { c -> c.isDigit() }) cost = it }, "Cost per Month", "0000", false, KeyboardType.Number, "Rs. ")
+            // Replace your "Form Fields" Column with this:
+            // Form Fields
+            GlassSurface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp), // Space outside the glass
+                containerColor = Color.White.copy(alpha = 0.08f) // Slightly more subtle
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(20.dp), // Expanded internal padding for a "larger" feel
+                    verticalArrangement = Arrangement.spacedBy(20.dp) // More space between fields
+                ) {
+                    PropertyInputField(
+                        value = title,
+                        onValueChange = { title = it },
+                        label = "Property Title",
+                        icon = com.example.roomsathi.R.drawable.baseline_home_24,
+                        placeholder = "e.g. Modern Apartment"
+                    )
+
+                    PropertyInputField(
+                        value = location,
+                        onValueChange = { location = it },
+                        label = "Location",
+                        icon = com.example.roomsathi.R.drawable.baseline_location_on_24,
+                        placeholder = "e.g. Kathmandu, Nepal"
+                    )
+
+                    PropertyInputField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = "Description",
+                        icon = com.example.roomsathi.R.drawable.baseline_description_24,
+                        placeholder = "Features, rules, etc.",
+                        isMultiline = true
+                    )
+
+                    PropertyInputField(
+                        value = cost,
+                        onValueChange = { if (it.all { c -> c.isDigit() }) cost = it },
+                        label = "Cost (Monthly)",
+                        icon = com.example.roomsathi.R.drawable.outline_attach_money_24,
+                        keyboardType = KeyboardType.Number,
+                        prefix = "Rs. "
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -103,13 +163,14 @@ fun AddingPropertyScreen(
             // Pictures Section
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.12f))
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.White.copy(alpha = 0.15f)),
+                border = BorderStroke(1.dp, Color.White.copy(alpha = 0.2f))
             ) {
-                Icon(painterResource(id = com.example.roomsathi.R.drawable.baseline_add_24), null, tint = Yellow)
-                Spacer(Modifier.width(8.dp))
-                Text("Select Pictures (${selectedImageUris.size}/8)", color = Color.White)
+                Icon(painterResource(id = com.example.roomsathi.R.drawable.baseline_add_photo_alternate_24), null, tint = Yellow)
+                Spacer(Modifier.width(12.dp))
+                Text("Add Photos (${selectedImageUris.size}/8)", color = Color.White, fontWeight = FontWeight.Bold)
             }
 
             if (selectedImageUris.isNotEmpty()) {
@@ -138,7 +199,7 @@ fun AddingPropertyScreen(
 
                 // Action Buttons
                 Row(
-                    modifier = Modifier.fillMaxWidth().navigationBarsPadding(),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     // Cancel Button Fixed
@@ -146,10 +207,9 @@ fun AddingPropertyScreen(
                         onClick = { backDispatcher?.onBackPressed() },
                         modifier = Modifier.weight(1f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f)),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.3f))
                     ) {
-                        Text("CANCEL", fontWeight = FontWeight.Bold)
+                        Text("CANCEL", color = Color.White, fontWeight = FontWeight.Bold)
                     }
 
                     // Add Button
@@ -160,10 +220,8 @@ fun AddingPropertyScreen(
                         },
                         modifier = Modifier.weight(1.5f).height(56.dp),
                         shape = RoundedCornerShape(16.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Yellow,
-                            disabledContainerColor = Yellow.copy(alpha = 0.2f)
-                        ),
+                        colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                        elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp),
                         enabled = title.isNotBlank() && cost.isNotBlank() && selectedImageUris.isNotEmpty()
                     ) {
                         Text("ADD PROPERTY", color = Color.Black, fontWeight = FontWeight.ExtraBold)
@@ -178,23 +236,57 @@ fun AddingPropertyScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PropertyInputField(
-    value: String, onValueChange: (String) -> Unit, label: String,
-    placeholder: String = "", isMultiline: Boolean = false,
-    keyboardType: KeyboardType = KeyboardType.Text, prefix: String? = null
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: Int,
+    placeholder: String = "",
+    isMultiline: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    prefix: String? = null
 ) {
     TextField(
         value = value,
         onValueChange = onValueChange,
-        label = { Text(label, color = Yellow, fontSize = 12.sp, fontWeight = FontWeight.SemiBold) },
-        placeholder = { Text(placeholder, color = Color.White.copy(alpha = 0.3f), fontSize = 14.sp) },
-        modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.07f))
-            .then(if (isMultiline) Modifier.height(110.dp) else Modifier),
+        leadingIcon = {
+            Icon(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                tint = Yellow.copy(alpha = 0.9f), // Soften the yellow slightly
+                modifier = Modifier.size(22.dp)
+            )
+        },
+        label = {
+            Text(
+                text = label,
+                color = Yellow,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Bold
+            )
+        },
+        placeholder = {
+            Text(
+                text = placeholder,
+                color = Color.White.copy(alpha = 0.35f),
+                fontSize = 14.sp
+            )
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp)) // Slightly rounder for modern look
+            .background(Color.White.copy(alpha = 0.05f)) // Very subtle inner tint
+            .then(if (isMultiline) Modifier.height(130.dp) else Modifier), // Increased height
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        prefix = prefix?.let { { Text(it, color = Color.White) } },
+        prefix = prefix?.let { { Text(it, color = Color.White.copy(alpha = 0.7f)) } },
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent,
-            focusedTextColor = Color.White, unfocusedTextColor = Color.White,
-            focusedIndicatorColor = Yellow, unfocusedIndicatorColor = Color.Transparent, cursorColor = Yellow
-        )
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White,
+            focusedIndicatorColor = Yellow,
+            unfocusedIndicatorColor = Color.White.copy(alpha = 0.1f), // Subtle underline when not focused
+            cursorColor = Yellow
+        ),
+        singleLine = !isMultiline
     )
 }

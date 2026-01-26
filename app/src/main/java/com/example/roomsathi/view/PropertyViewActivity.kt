@@ -12,6 +12,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -166,7 +168,7 @@ fun PropertyDetailsScreen(
                         .background(Color.Black.copy(alpha = 0.3f), CircleShape)
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.baseline_bookmark_24),
+                        imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Save",
                         // Dynamic tint based on favorites state
                         tint = if (isFavorite) Yellow else Color.White

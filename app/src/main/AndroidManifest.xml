@@ -24,7 +24,7 @@
         </activity>
 
         <activity android:name=".MainActivity" android:exported="false" />
-        <activity android:name=".view.LoginUi" android:exported="false" />
+        <activity android:name=".view.LoginUi" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <activity android:name=".view.RegistrationActivity" android:exported="false" />
         <activity android:name=".view.DashboardActivity" android:exported="false" />
         <activity android:name=".view.EditProfileActivity" android:exported="false" />
