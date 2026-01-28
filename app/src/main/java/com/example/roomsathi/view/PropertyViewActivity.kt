@@ -81,7 +81,14 @@ fun PropertyDetailsScreen(
                             fontWeight = FontWeight.ExtraBold
                         )
                     }
-//
+                    Button(
+                        onClick = { /* Handle Booking */ },
+                        colors = ButtonDefaults.buttonColors(containerColor = Yellow),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.height(50.dp).width(160.dp)
+                    ) {
+                        Text("Book Now", color = Color.Black, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         }
