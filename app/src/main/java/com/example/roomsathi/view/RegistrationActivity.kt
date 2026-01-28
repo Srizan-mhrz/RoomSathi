@@ -25,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,7 +60,6 @@ fun RegistrationScreen() {
     val context = LocalContext.current
     val activity = context as? Activity
 
-    // Consistent ViewModel initialization
     val userViewModel: UserViewModel = viewModel(
         factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
@@ -74,7 +74,6 @@ fun RegistrationScreen() {
     var phoneNumber by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisibility by remember { mutableStateOf(false) }
     var isUploading by remember { mutableStateOf(false) }
 
@@ -95,7 +94,6 @@ fun RegistrationScreen() {
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // --- Custom Top Bar ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -120,14 +118,14 @@ fun RegistrationScreen() {
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // --- Profile Image Picker (Themed) ---
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .clip(CircleShape)
                     .background(Color.White.copy(alpha = 0.1f))
                     .border(2.dp, if (imageUri == null) Yellow.copy(alpha = 0.5f) else Yellow, CircleShape)
-                    .clickable { launcher.launch("image/*") },
+                    .clickable { launcher.launch("image/*") }
+                    .testTag("profileImagePicker"), // Tag added for UI testing
                 contentAlignment = Alignment.Center
             ) {
                 if (imageUri == null) {
@@ -152,16 +150,18 @@ fun RegistrationScreen() {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // --- Registration Form inside Glass ---
-            GlassSurface(
+            // Glass Surface Container
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = Color.White.copy(alpha = 0.1f)
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(24.dp)
             ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     ThemedInputField(
                         label = "Full Name",
                         value = fullName,
                         icon = R.drawable.baseline_person_24,
+                        testTag = "fullNameField", // Tag added
                         onValueChange = { fullName = it }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -171,6 +171,7 @@ fun RegistrationScreen() {
                         value = email,
                         icon = R.drawable.outline_alternate_email_24,
                         keyboardType = KeyboardType.Email,
+                        testTag = "emailField", // Tag added
                         onValueChange = { email = it }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -178,8 +179,9 @@ fun RegistrationScreen() {
                     ThemedInputField(
                         label = "Phone Number",
                         value = phoneNumber,
-                        icon = R.drawable.outline_contact_page_24, // Using location icon for consistency
+                        icon = R.drawable.outline_contact_page_24,
                         keyboardType = KeyboardType.Phone,
+                        testTag = "phoneField", // Tag added
                         onValueChange = { phoneNumber = it }
                     )
                     Spacer(modifier = Modifier.height(16.dp))
@@ -187,11 +189,12 @@ fun RegistrationScreen() {
                     ThemedInputField(
                         label = "Password",
                         value = password,
-                        icon = R.drawable.outline_key_vertical_24, // Use a lock icon if you have one
+                        icon = R.drawable.outline_key_vertical_24,
                         keyboardType = KeyboardType.Password,
                         isPassword = true,
                         isPasswordVisible = passwordVisibility,
                         onVisibilityChange = { passwordVisibility = !passwordVisibility },
+                        testTag = "passwordField", // Tag added
                         onValueChange = { password = it }
                     )
                 }
@@ -199,7 +202,6 @@ fun RegistrationScreen() {
 
             Spacer(modifier = Modifier.height(40.dp))
 
-            // --- Sign Up Button ---
             if (isUploading) {
                 CircularProgressIndicator(color = Yellow)
             } else {
@@ -247,7 +249,8 @@ fun RegistrationScreen() {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(56.dp)
+                        .testTag("signUpButton"), // Tag added
                     colors = ButtonDefaults.buttonColors(containerColor = Yellow),
                     shape = RoundedCornerShape(16.dp),
                     elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
@@ -275,6 +278,7 @@ fun ThemedInputField(
     isPassword: Boolean = false,
     isPasswordVisible: Boolean = false,
     onVisibilityChange: () -> Unit = {},
+    testTag: String = "", // Parameter added for testing
     onValueChange: (String) -> Unit
 ) {
     Column {
@@ -288,7 +292,9 @@ fun ThemedInputField(
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(testTag), // Applying the testTag here
             shape = RoundedCornerShape(14.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = Color.White,
