@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag // Required Import
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -67,7 +68,6 @@ fun LoginScreen() {
             .fillMaxSize()
             .background(LightBlue)
             .imePadding()
-
     ) {
         Column(
             modifier = Modifier
@@ -112,16 +112,18 @@ fun LoginScreen() {
             )
 
             // Glass Container for Inputs
-            GlassSurface(
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                containerColor = Color.White.copy(alpha = 0.1f)
+                color = Color.White.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(24.dp)
             ) {
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Column(modifier = Modifier.padding(16.dp)) {
                     ThemedInputField(
                         label = "Email Address",
                         value = email,
                         icon = R.drawable.outline_alternate_email_24,
                         keyboardType = KeyboardType.Email,
+                        testTag = "loginEmailField", // Added Tag
                         onValueChange = { email = it }
                     )
 
@@ -130,11 +132,12 @@ fun LoginScreen() {
                     ThemedInputField(
                         label = "Password",
                         value = password,
-                        icon = R.drawable.outline_key_vertical_24, // Substitute for lock icon if available
+                        icon = R.drawable.outline_key_vertical_24,
                         keyboardType = KeyboardType.Password,
                         isPassword = true,
                         isPasswordVisible = passwordVisible,
                         onVisibilityChange = { passwordVisible = !passwordVisible },
+                        testTag = "loginPasswordField", // Added Tag
                         onValueChange = { password = it }
                     )
                 }
@@ -152,7 +155,8 @@ fun LoginScreen() {
                     color = Yellow,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    modifier = Modifier.clickable {  val intent = Intent(context, ForgotPassword::class.java)
+                    modifier = Modifier.clickable {
+                        val intent = Intent(context, ForgotPassword::class.java)
                         context.startActivity(intent)
                     }
                 )
@@ -183,7 +187,8 @@ fun LoginScreen() {
                 colors = ButtonDefaults.buttonColors(containerColor = Yellow),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .testTag("signInButton"), // Added Tag
                 elevation = ButtonDefaults.buttonElevation(defaultElevation = 8.dp)
             ) {
                 Text(
@@ -194,7 +199,7 @@ fun LoginScreen() {
                 )
             }
 
-            Spacer(modifier = Modifier.weight(1f)) // Push Sign Up section to bottom
+            Spacer(modifier = Modifier.weight(1f))
 
             // Sign Up Footer
             Row(
