@@ -421,12 +421,7 @@ fun DashboardTopBar(userName: String, profileImageUrl: String) {
                 }
 
                 // Notification Icon
-                Icon(
-                    painter = painterResource(R.drawable.baseline_notifications_active_24),
-                    contentDescription = null,
-                    tint = Yellow,
-                    modifier = Modifier.size(26.dp)
-                )
+
             }
         }
     }
