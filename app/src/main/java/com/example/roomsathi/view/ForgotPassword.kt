@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag // Added import for testing
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -43,7 +44,6 @@ fun ForgotPasswordScreen() {
     val context = LocalContext.current
     val userViewModel = remember { UserViewModel(UserRepoImpl()) }
 
-    // Root container to fix white gaps
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -86,7 +86,6 @@ fun ForgotPasswordScreen() {
             ) {
                 Spacer(Modifier.height(40.dp))
 
-                // --- Icon/Illustration Area ---
                 Icon(
                     painter = painterResource(id = R.drawable.outline_key_vertical_24),
                     contentDescription = null,
@@ -115,7 +114,6 @@ fun ForgotPasswordScreen() {
 
                 Spacer(Modifier.height(40.dp))
 
-                // --- Glassmorphic Email Field ---
                 Text(
                     text = "Email Address",
                     color = Yellow,
@@ -124,6 +122,7 @@ fun ForgotPasswordScreen() {
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 )
 
+                // Added testTag to identify this field in Instrumented Tests
                 TextField(
                     value = email,
                     onValueChange = { email = it },
@@ -131,7 +130,8 @@ fun ForgotPasswordScreen() {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
-                        .background(White.copy(alpha = 0.07f), RoundedCornerShape(12.dp)),
+                        .background(White.copy(alpha = 0.07f), RoundedCornerShape(12.dp))
+                        .testTag("forgotEmailField"),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
                     colors = TextFieldDefaults.colors(
@@ -147,7 +147,7 @@ fun ForgotPasswordScreen() {
 
                 Spacer(Modifier.height(40.dp))
 
-                // --- Reset Button ---
+                // Added testTag to identify the button in Instrumented Tests
                 Button(
                     onClick = {
                         userViewModel.forgetPassword(email) { success, msg ->
@@ -157,7 +157,8 @@ fun ForgotPasswordScreen() {
                     enabled = email.isNotBlank(),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
+                        .height(56.dp)
+                        .testTag("resetButton"),
                     shape = RoundedCornerShape(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Yellow,
