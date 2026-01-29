@@ -124,6 +124,12 @@ fun EditProfileScreen(onBack: () -> Unit) {
                 )
             }
             Spacer(modifier = Modifier.height(30.dp))
+            ProfileImageWithEditor(
+                displayImage = selectedImageUri ?: user?.profileImageUrl ?: "",
+                onImageClick = { launcher.launch("image/*") }
+            )
+            Spacer(modifier = Modifier.height(30.dp))
+
 
             // Replace the old text fields with this block:
             GlassSurface(
