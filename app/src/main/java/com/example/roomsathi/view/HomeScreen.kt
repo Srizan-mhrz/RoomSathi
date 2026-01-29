@@ -1,7 +1,6 @@
 package com.example.roomsathi.view
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -82,7 +81,7 @@ fun HomeScreen(
         if (featuredProperties.isNotEmpty() && searchQuery.isEmpty()) {
             // Only show featured if not searching
             item {
-                SectionHeader(title = "Featured Properties", actionText = "See All")
+                SectionHeader(title = "Featured Properties", actionText = "")
                 Spacer(modifier = Modifier.height(12.dp))
                 LazyRow(
                     contentPadding = PaddingValues(horizontal = 16.dp),
@@ -93,7 +92,8 @@ fun HomeScreen(
                             title = property.title,
                             price = "Rs ${property.cost}",
                             location = property.location,
-                            imageUrl = property.imageUrls.firstOrNull() ?: ""
+                            imageUrl = property.imageUrls.firstOrNull() ?: "",
+                            onClick = { onPropertyClick(property) }
                         )
                     }
                 }
@@ -186,8 +186,14 @@ fun CompactPropertyCard(
 }
 
 @Composable
-fun FeaturedPropertyCard(title: String, price: String, location: String, imageUrl: String) {
-    Column(modifier = Modifier.width(240.dp)) {
+fun FeaturedPropertyCard(
+    title: String,
+    price: String,
+    location: String,
+    imageUrl: String,
+    onClick: () -> Unit
+) {
+    Column(modifier = Modifier.width(240.dp).clickable{onClick()}) {
         Box {
             AsyncImage(
                 model = imageUrl,

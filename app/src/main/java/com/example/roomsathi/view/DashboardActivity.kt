@@ -338,9 +338,7 @@ fun DashboardContent(padding: PaddingValues) {
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
         // ... Rest of your items (Featured Title, LazyRow, etc.) stay the same
-        item {
-            SectionHeader(title = "Featured Properties", actionText = "See all")
-        }
+
 
         item { Spacer(modifier = Modifier.height(16.dp)) }
 
